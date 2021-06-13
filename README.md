@@ -33,3 +33,19 @@ OAuth 2.0 in Spring Boot Applications - Tutorial from Sergey Kargopolov (Udemy)
         -  Signing In ->
         -  My Password -> Update
         -  New Password: `password_art_1`
+
+#####  32. Creating a new OAuth client application
+
+-  Create Client:
+    -  Clients section
+    -  Create
+    -  Client Id: `photo-app-code-flow-client`
+    -  Client Protocol: `openid-connect`
+    -  Save
+-  Settings
+    -  Standard Flow Enabled: `On`
+    -  Implicit Flow Enabled: `Off`
+    -  **Direct Access Grants Enabled**: `Off`
+    -  Valid Redirect URIs: `http://localhost:8083/callback` (fake URL (for testing) - have no running App yet)
+    -  Save
+        
