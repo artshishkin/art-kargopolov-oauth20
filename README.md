@@ -48,4 +48,22 @@ OAuth 2.0 in Spring Boot Applications - Tutorial from Sergey Kargopolov (Udemy)
     -  **Direct Access Grants Enabled**: `Off`
     -  Valid Redirect URIs: `http://localhost:8083/callback` (fake URL (for testing) - have no running App yet)
     -  Save
+
+##### 33. Configuring Client Application Secrets
+
+-  Enable `Credentials` tab
+    -  Settings
+    -  Access Type: `confidential`
+    -  Save
+-  Credentials tab
+    -  Client Authenticator: `Client Id and Secret`
+    -  Secret: `ee68a49e-5ac6-4673-9465-51e53de3fb0e` (copy or regenerate)    
+
+
+
+
+
+
+
+
         
