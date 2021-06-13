@@ -1,0 +1,6 @@
+server.port: 8081
+
+# We can use one of these properties
+spring.security.oauth2.resourceserver.jwt:
+#  issuer-uri: http://localhost:8080/auth/realms/katarinazart
+  jwk-set-uri: http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/certs
