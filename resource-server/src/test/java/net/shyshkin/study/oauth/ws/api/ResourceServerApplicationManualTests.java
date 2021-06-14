@@ -1,19 +1,29 @@
 package net.shyshkin.study.oauth.ws.api;
 
 import lombok.extern.slf4j.Slf4j;
+import net.shyshkin.study.oauth.ws.api.dto.OAuthResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 
 import java.util.concurrent.TimeUnit;
@@ -37,11 +47,17 @@ class ResourceServerApplicationManualTests {
 
     RemoteWebDriver driver;
 
+    @Autowired
+    RestTemplateBuilder restTemplateBuilder;
+    private RestTemplate restTemplate;
+
     @BeforeEach
     void setUp() {
         browser = new BrowserWebDriverContainer<>()
                 .withCapabilities(new FirefoxOptions());
         browser.start();
+
+        restTemplate = restTemplateBuilder.rootUri("http://localhost:8080").build();
     }
 
     @AfterEach
@@ -56,6 +72,40 @@ class ResourceServerApplicationManualTests {
         String code = getAuthorizationCode();
 
         log.debug("Code from keycloak: {}", code);
+
+        String jwtAccessToken = getAccessToken(code);
+
+        log.debug("Jwt Access Token: {}", jwtAccessToken);
+    }
+
+    private String getAccessToken(String code) {
+        //when
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("grant_type", "authorization_code");
+        map.add("client_id", "photo-app-code-flow-client");
+        map.add("client_secret", "ee68a49e-5ac6-4673-9465-51e53de3fb0e");
+        map.add("code", code);
+        map.add("redirect_uri", "http://localhost:8083/callback");
+        map.add("scope", "openid profile");
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(map, headers);
+
+        var responseEntity = restTemplate
+                .postForEntity("/auth/realms/katarinazart/protocol/openid-connect/token",
+                        requestEntity,
+                        OAuthResponse.class);
+
+        //then
+        log.debug("Response from OAuth2.0 server: {}", responseEntity);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        OAuthResponse oAuthResponse = responseEntity.getBody();
+        assertThat(oAuthResponse)
+                .hasNoNullFieldsOrProperties();
+
+        return oAuthResponse.getAccessToken();
     }
 
     private void askOAuthServerForAuthorizationCode() {
