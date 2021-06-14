@@ -4,21 +4,20 @@ import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.dto.OAuthResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
@@ -33,6 +32,7 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled("Only for manual testing - Start keycloak-postgres docker compose file")
 //@Testcontainers
 @ContextConfiguration(initializers = ResourceServerApplicationManualTests.Initializer.class)
 @TestPropertySource(properties = {
@@ -51,6 +51,9 @@ class ResourceServerApplicationManualTests {
     RestTemplateBuilder restTemplateBuilder;
     private RestTemplate restTemplate;
 
+    @Autowired
+    TestRestTemplate testRestTemplate;
+
     @BeforeEach
     void setUp() {
         browser = new BrowserWebDriverContainer<>()
@@ -66,7 +69,7 @@ class ResourceServerApplicationManualTests {
     }
 
     @Test
-    void seleniumTest() {
+    void totalWorkflowTest() {
         driver = browser.getWebDriver();
 
         String code = getAuthorizationCode();
@@ -76,6 +79,14 @@ class ResourceServerApplicationManualTests {
         String jwtAccessToken = getAccessToken(code);
 
         log.debug("Jwt Access Token: {}", jwtAccessToken);
+
+        RequestEntity<?> requestEntity = RequestEntity
+                .get("/users/status/check")
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                .build();
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isEqualTo("Working...");
     }
 
     private String getAccessToken(String code) {
