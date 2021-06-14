@@ -17,6 +17,8 @@
         <java.version>11</java.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <selenium-remote-driver.version>3.141.59</selenium-remote-driver.version>
+
+        <awaitility.version>4.0.2</awaitility.version>
     </properties>
     <dependencies>
         <dependency>
@@ -72,6 +74,14 @@
             <artifactId>selenium-firefox-driver</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
