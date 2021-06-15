@@ -2,7 +2,6 @@ package net.shyshkin.study.oauth.ws.api;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.dto.OAuthResponse;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -13,17 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.boot.web.context.WebServerInitializedEvent;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.*;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.BrowserWebDriverContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.concurrent.TimeUnit;
 
@@ -33,8 +29,7 @@ import static org.awaitility.Awaitility.await;
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Disabled("Only for manual testing - Start keycloak-postgres docker compose file")
-//@Testcontainers
-@ContextConfiguration(initializers = ResourceServerApplicationManualTests.Initializer.class)
+@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug"
 })
@@ -42,8 +37,14 @@ class ResourceServerApplicationManualTests {
 
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
     public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
-    //    @Container
-    public BrowserWebDriverContainer<?> browser;
+
+    @Container
+    public static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
+            .withCapabilities(new FirefoxOptions());
+
+    static {
+        org.testcontainers.Testcontainers.exposeHostPorts(8080);
+    }
 
     RemoteWebDriver driver;
 
@@ -56,21 +57,14 @@ class ResourceServerApplicationManualTests {
 
     @BeforeEach
     void setUp() {
-        browser = new BrowserWebDriverContainer<>()
-                .withCapabilities(new FirefoxOptions());
-        browser.start();
+
+        driver = browser.getWebDriver();
 
         restTemplate = restTemplateBuilder.rootUri("http://localhost:8080").build();
     }
 
-    @AfterEach
-    void tearDown() {
-        browser.stop();
-    }
-
     @Test
     void totalWorkflowTest() {
-        driver = browser.getWebDriver();
 
         String code = getAuthorizationCode();
 
@@ -165,17 +159,6 @@ class ResourceServerApplicationManualTests {
         WebElement passwordField = driver.findElementById("password");
         passwordField.sendKeys(password);
         passwordField.submit();
-    }
-
-    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-        @Override
-        public void initialize(ConfigurableApplicationContext applicationContext) {
-            applicationContext.addApplicationListener((ApplicationListener<WebServerInitializedEvent>) event -> {
-//                org.testcontainers.Testcontainers.exposeHostPorts(event.getWebServer().getPort());
-                org.testcontainers.Testcontainers.exposeHostPorts(8080);
-            });
-        }
     }
 
 }
