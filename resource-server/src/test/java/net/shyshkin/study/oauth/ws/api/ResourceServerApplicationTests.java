@@ -28,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -167,6 +168,68 @@ class ResourceServerApplicationTests {
                 .contains("\"preferred_username\":\"shyshkin.art\"")
                 .contains("\"azp\":\"photo-app-code-flow-client\"")
                 .contains("\"scope\":\"openid profile email\"")
+        ;
+
+        log.debug("Response body: {}", body);
+
+    }
+
+    @Test
+    @Order(40)
+    @Disabled("org.springframework.web.client.HttpClientErrorException$Unauthorized: 401 Unauthorized: [{\"error\":\"invalid_token\",\"error_description\":\"Token verification failed\"}]")
+    void getUserInfoFromOAuthServer() {
+
+        //given
+        assertThat(jwtAccessToken).isNotEmpty();
+        log.debug("JWT Token: {}", jwtAccessToken);
+
+        //when
+        var requestEntity = RequestEntity
+                .get("/auth/realms/katarinazart/protocol/openid-connect/userinfo")
+                .headers(headers -> headers.setBearerAuth(jwtAccessToken))
+                .build();
+
+        AtomicReference<ResponseEntity<String>> responseEntityAtomic = new AtomicReference<>();
+        await()
+                .timeout(3, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    try {
+                        var responseEntity = keycloakRestTemplate
+                                .exchange(requestEntity, String.class);
+                        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+                        responseEntityAtomic.set(responseEntity);
+                    } catch (Exception e) {
+                        log.debug("Exception:", e);
+                        assertThat(false).isTrue();
+                    }
+                });
+
+        //then
+        ResponseEntity<String> responseEntity = responseEntityAtomic.get();
+        String body = responseEntity.getBody();
+
+//        {
+//            "sub": "624ba8cd-b02f-4405-b6e7-6855a4bb3452",
+//            "email_verified": false,
+//            "name": "Artem Shyshkin",
+//            "preferred_username": "shyshkin.art",
+//            "given_name": "Artem",
+//            "family_name": "Shyshkin",
+//            "email": "d.art.shishkin@gmail.com"
+//        }
+
+        assertThat(body)
+                .isNotEmpty()
+                .contains("email_verified")
+                .contains("name")
+                .contains("preferred_username")
+                .contains("shyshkin.art")
+                .contains("Artem Shyshkin")
+                .contains("given_name")
+                .contains("family_name")
+                .contains("email")
+                .contains("d.art.shishkin@gmail.com")
         ;
 
         log.debug("Response body: {}", body);
