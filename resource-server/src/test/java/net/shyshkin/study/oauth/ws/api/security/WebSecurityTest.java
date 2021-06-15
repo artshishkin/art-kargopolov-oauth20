@@ -135,6 +135,28 @@ class WebSecurityTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
+    @Test
+    @Order(30)
+    void withProperScope() {
+
+        String code = getAuthorizationCode("openid profile");
+
+        log.debug("Code from keycloak: {}", code);
+
+        jwtAccessToken = getAccessToken(code);
+
+        log.debug("Jwt Access Token: {}", jwtAccessToken);
+
+        RequestEntity<?> requestEntity = RequestEntity
+                .get("/users/status/check")
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                .build();
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+        log.debug("Response entity: {}", responseEntity);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isEqualTo("Working...");
+    }
+
     private String getAccessToken(String code) {
         //when
         HttpHeaders headers = new HttpHeaders();
@@ -180,10 +202,13 @@ class WebSecurityTest {
 
     private String getAuthorizationCode(String scope) {
 
-        askOAuthServerForAuthorizationCode(scope);
+        try {
+            askOAuthServerForAuthorizationCode(scope);
 
-        signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
-
+            signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
+        } catch (Exception e) {
+            log.debug("Exception while getting an Authorization Code", e);
+        }
         waitRedirection();
 
         String redirectedUrl = driver.getCurrentUrl();
