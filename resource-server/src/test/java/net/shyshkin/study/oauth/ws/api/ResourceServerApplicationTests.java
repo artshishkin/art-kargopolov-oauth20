@@ -2,8 +2,7 @@ package net.shyshkin.study.oauth.ws.api;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.dto.OAuthResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -41,6 +40,7 @@ import static org.awaitility.Awaitility.await;
         "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://${OAUTH_HOST}:${OAUTH_PORT}/auth/realms/katarinazart/protocol/openid-connect/certs"
 })
 @ContextConfiguration(initializers = ResourceServerApplicationTests.Initializer.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ResourceServerApplicationTests {
 
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
@@ -99,6 +99,8 @@ class ResourceServerApplicationTests {
     @Autowired
     TestRestTemplate testRestTemplate;
 
+    static String jwtAccessToken;
+
     @BeforeEach
     void setUp() {
 
@@ -113,13 +115,14 @@ class ResourceServerApplicationTests {
     }
 
     @Test
+    @Order(20)
     void totalWorkflowTest() {
 
         String code = getAuthorizationCode();
 
         log.debug("Code from keycloak: {}", code);
 
-        String jwtAccessToken = getAccessToken(code);
+        jwtAccessToken = getAccessToken(code);
 
         log.debug("Jwt Access Token: {}", jwtAccessToken);
 
@@ -131,6 +134,43 @@ class ResourceServerApplicationTests {
         log.debug("Response entity: {}", responseEntity);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody()).isEqualTo("Working...");
+    }
+
+    @Test
+    @Order(30)
+    void accessingJwtClaims() {
+        //given
+        assertThat(jwtAccessToken).isNotEmpty();
+
+        //when
+        var requestEntity = RequestEntity
+                .get("/token")
+                .headers(headers -> headers.setBearerAuth(jwtAccessToken))
+                .build();
+
+        var responseEntity = testRestTemplate
+                .exchange(requestEntity, String.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String body = responseEntity.getBody();
+        assertThat(body)
+                .isNotEmpty()
+                .contains("tokenValue")
+                .contains("issuedAt")
+                .contains("expiresAt")
+                .contains("headers")
+                .contains("\"typ\":\"JWT\",\"alg\":\"RS256\"")
+                .contains("claims")
+                .contains("resource_access")
+                .contains("\"typ\":\"Bearer\"")
+                .contains("\"preferred_username\":\"shyshkin.art\"")
+                .contains("\"azp\":\"photo-app-code-flow-client\"")
+                .contains("\"scope\":\"openid profile email\"")
+        ;
+
+        log.debug("Response body: {}", body);
+
     }
 
     private String getAccessToken(String code) {
