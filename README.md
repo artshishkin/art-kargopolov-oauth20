@@ -121,9 +121,23 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
 --data-urlencode 'scope=openid profile'
 ```
 
+####  Section 6: Resource Server - Scope Based Access Control
 
+#####  50. Demo - without using proper Scope
 
-
+1. Remove Default Client Scopes
+    -  log in into Keycloak management console
+    -  Client Scopes
+    -  Assigned Default Client Scopes -> move email and profile into Optional
+2.  Remove Client Scopes from Client
+    -  Clients -> `Photo-app-code-flow-client`
+    -  Client Scopes
+    -  Assigned Default Client Scopes -> move email and profile into Optional
+3.  Stop Docker compose `keycloak-postgres`
+4.  Export new settings          
+    -  Start Docker compose `keycloak-postgres-export`
+    -  Wait for `export/realm-export.json` to be changed
+    -  Stop docker compose          
 
 
 

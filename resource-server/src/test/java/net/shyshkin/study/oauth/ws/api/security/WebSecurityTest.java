@@ -1,4 +1,4 @@
-package net.shyshkin.study.oauth.ws.api;
+package net.shyshkin.study.oauth.ws.api.security;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.dto.OAuthResponse;
@@ -28,7 +28,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -40,9 +39,9 @@ import static org.awaitility.Awaitility.await;
         "logging.level.net.shyshkin=debug",
         "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://${OAUTH_HOST}:${OAUTH_PORT}/auth/realms/katarinazart/protocol/openid-connect/certs"
 })
-@ContextConfiguration(initializers = ResourceServerApplicationTests.Initializer.class)
+@ContextConfiguration(initializers = WebSecurityTest.Initializer.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ResourceServerApplicationTests {
+class WebSecurityTest {
 
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
     public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
@@ -117,9 +116,9 @@ class ResourceServerApplicationTests {
 
     @Test
     @Order(20)
-    void totalWorkflowTest() {
+    void withoutUsingProperScope() {
 
-        String code = getAuthorizationCode();
+        String code = getAuthorizationCode("openid");
 
         log.debug("Code from keycloak: {}", code);
 
@@ -133,107 +132,7 @@ class ResourceServerApplicationTests {
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
         log.debug("Response entity: {}", responseEntity);
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(responseEntity.getBody()).isEqualTo("Working...");
-    }
-
-    @Test
-    @Order(30)
-    void accessingJwtClaims() {
-        //given
-        assertThat(jwtAccessToken).isNotEmpty();
-
-        //when
-        var requestEntity = RequestEntity
-                .get("/token")
-                .headers(headers -> headers.setBearerAuth(jwtAccessToken))
-                .build();
-
-        var responseEntity = testRestTemplate
-                .exchange(requestEntity, String.class);
-
-        //then
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        String body = responseEntity.getBody();
-        assertThat(body)
-                .isNotEmpty()
-                .contains("tokenValue")
-                .contains("issuedAt")
-                .contains("expiresAt")
-                .contains("headers")
-                .contains("\"typ\":\"JWT\",\"alg\":\"RS256\"")
-                .contains("claims")
-                .contains("resource_access")
-                .contains("\"typ\":\"Bearer\"")
-                .contains("\"preferred_username\":\"shyshkin.art\"")
-                .contains("\"azp\":\"photo-app-code-flow-client\"")
-                .contains("\"scope\":\"openid profile\"")
-        ;
-
-        log.debug("Response body: {}", body);
-
-    }
-
-    @Test
-    @Order(40)
-    @Disabled("org.springframework.web.client.HttpClientErrorException$Unauthorized: 401 Unauthorized: [{\"error\":\"invalid_token\",\"error_description\":\"Token verification failed\"}]")
-    void getUserInfoFromOAuthServer() {
-
-        //given
-        assertThat(jwtAccessToken).isNotEmpty();
-        log.debug("JWT Token: {}", jwtAccessToken);
-
-        //when
-        var requestEntity = RequestEntity
-                .get("/auth/realms/katarinazart/protocol/openid-connect/userinfo")
-                .headers(headers -> headers.setBearerAuth(jwtAccessToken))
-                .build();
-
-        AtomicReference<ResponseEntity<String>> responseEntityAtomic = new AtomicReference<>();
-        await()
-                .timeout(3, TimeUnit.SECONDS)
-                .pollInterval(1, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    try {
-                        var responseEntity = keycloakRestTemplate
-                                .exchange(requestEntity, String.class);
-                        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-                        responseEntityAtomic.set(responseEntity);
-                    } catch (Exception e) {
-                        log.debug("Exception:", e);
-                        assertThat(false).isTrue();
-                    }
-                });
-
-        //then
-        ResponseEntity<String> responseEntity = responseEntityAtomic.get();
-        String body = responseEntity.getBody();
-
-//        {
-//            "sub": "624ba8cd-b02f-4405-b6e7-6855a4bb3452",
-//            "email_verified": false,
-//            "name": "Artem Shyshkin",
-//            "preferred_username": "shyshkin.art",
-//            "given_name": "Artem",
-//            "family_name": "Shyshkin",
-//            "email": "d.art.shishkin@gmail.com"
-//        }
-
-        assertThat(body)
-                .isNotEmpty()
-                .contains("email_verified")
-                .contains("name")
-                .contains("preferred_username")
-                .contains("shyshkin.art")
-                .contains("Artem Shyshkin")
-                .contains("given_name")
-                .contains("family_name")
-                .contains("email")
-                .contains("d.art.shishkin@gmail.com")
-        ;
-
-        log.debug("Response body: {}", body);
-
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private String getAccessToken(String code) {
@@ -247,7 +146,6 @@ class ResourceServerApplicationTests {
         map.add("client_secret", "ee68a49e-5ac6-4673-9465-51e53de3fb0e");
         map.add("code", code);
         map.add("redirect_uri", "http://localhost:8083/callback");
-        map.add("scope", "openid profile");
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(map, headers);
 
@@ -261,14 +159,15 @@ class ResourceServerApplicationTests {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         OAuthResponse oAuthResponse = responseEntity.getBody();
         assertThat(oAuthResponse)
-                .hasNoNullFieldsOrProperties();
+                .hasFieldOrProperty("accessToken");
 
         return oAuthResponse.getAccessToken();
     }
 
-    private void askOAuthServerForAuthorizationCode() {
+    private void askOAuthServerForAuthorizationCode(String scope) {
 
-        String url = "http://keycloak:8080/auth/realms/katarinazart/protocol/openid-connect/auth?response_type=code&client_id=photo-app-code-flow-client&scope=openid profile&state=jskd879sdkj&redirect_uri=http://localhost:8083/callback";
+        String url = String.format("http://keycloak:8080/auth/realms/katarinazart/protocol/openid-connect/auth?response_type=code&client_id=photo-app-code-flow-client&scope=%s&state=jskd879sdkj&redirect_uri=http://localhost:8083/callback",
+                scope);
         log.debug("Browser container: {}", browser);
         driver.get(url);
 
@@ -279,9 +178,9 @@ class ResourceServerApplicationTests {
 //        log.debug("Page Source: {}", driver.getPageSource());
     }
 
-    private String getAuthorizationCode() {
+    private String getAuthorizationCode(String scope) {
 
-        askOAuthServerForAuthorizationCode();
+        askOAuthServerForAuthorizationCode(scope);
 
         signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
 
@@ -326,23 +225,4 @@ class ResourceServerApplicationTests {
             System.setProperty("OAUTH_PORT", String.valueOf(keycloak.getMappedPort(8080)));
         }
     }
-//from [another project](https://github.com/artshishkin/art-kargopolov-cqrs-saga-axon-microservices/commit/5adcb3fa82414514127d360f8bfff712f1dca327)
-//    static class Initializer
-//            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-//        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-//            String host = axonServer.getHost();
-//            Integer port = axonServer.getMappedPort(8124);
-//            log.debug("axonServer {}:{}", host, port);
-//
-//            String servers = host + ":" + port;
-//            TestPropertyValues.of(
-//                    "axon.axonserver.servers=" + servers,
-//                    "eureka.client.register-with-eureka=false",
-//                    "eureka.client.fetch-registry=false",
-//                    "spring.datasource.url=jdbc:h2:mem:testdb",
-//                    "spring.datasource.username=sa",
-//                    "spring.datasource.password="
-//            ).applyTo(configurableApplicationContext.getEnvironment());
-//        }
-//    }
 }
