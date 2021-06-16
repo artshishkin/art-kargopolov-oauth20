@@ -1,6 +1,7 @@
 package net.shyshkin.study.oauth.ws.api.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import net.shyshkin.study.oauth.ws.api.dto.UserDto;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -65,5 +66,19 @@ public class UsersController {
     public String updateSuperUserById(@PathVariable String id) {
         log.debug("updateSuperUserById invoked (PreAuthorize)");
         return String.format("Updated super user with id: `%s` and same JWT subject", id);
+    }
+
+    @GetMapping("/byId/super/{id}")
+    public UserDto getSuperUserById(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+        log.debug("getSuperUserById invoked (PostAuthorize)");
+        return findByIdFakeRepositoryCall(id);
+    }
+
+    private UserDto findByIdFakeRepositoryCall(String id) {
+        return UserDto.builder()
+                .id(id)
+                .firstName("Mike")
+                .lastName("Wazowski")
+                .build();
     }
 }
