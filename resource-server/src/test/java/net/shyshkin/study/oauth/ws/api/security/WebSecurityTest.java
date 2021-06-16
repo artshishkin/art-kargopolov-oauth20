@@ -2,6 +2,7 @@ package net.shyshkin.study.oauth.ws.api.security;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.dto.OAuthResponse;
+import net.shyshkin.study.oauth.ws.api.dto.UserDto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -388,8 +389,59 @@ class WebSecurityTest {
             assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             assertThat(responseEntity.getBody()).isBlank();
         }
+    }
 
+    @Nested
+    class PostAuthorizeTests {
 
+        @BeforeEach
+        void setUp() {
+            checkJwtExists();
+        }
+
+        @Test
+        void getSuperUserById_ownerHasAccess() {
+
+            //given
+            String userId = "624ba8cd-b02f-4405-b6e7-6855a4bb3452"; //from `realm-export.json`
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .get("/users/byId/super/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            var responseEntity = testRestTemplate.exchange(requestEntity, UserDto.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody())
+                    .isNotNull()
+                    .hasNoNullFieldsOrProperties()
+                    .hasFieldOrPropertyWithValue("id", userId)
+                    .hasFieldOrPropertyWithValue("firstName", "Mike")
+                    .hasFieldOrPropertyWithValue("lastName", "Wazowski")
+            ;
+        }
+
+        @Test
+        void getSuperUserById_notOwner_and_notAdmin_HasNoAccess() {
+
+            //given
+            String userId = UUID.randomUUID().toString();
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .get("/users/byId/super/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            var responseEntity = testRestTemplate.exchange(requestEntity, UserDto.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(responseEntity.getBody()).isNull();
+        }
     }
 
     private void checkJwtExists() {
