@@ -29,6 +29,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -204,6 +205,77 @@ class WebSecurityTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(responseEntity.getBody()).isBlank();
     }
+
+    @Nested
+    class SecuredMethodsTests {
+
+        @BeforeEach
+        void setUp() {
+            if (jwtAccessToken == null) {
+                String code = getAuthorizationCode("openid");
+                log.debug("Code from keycloak: {}", code);
+                jwtAccessToken = getAccessToken(code);
+            }
+            log.debug("Jwt Access Token: {}", jwtAccessToken);
+        }
+
+        @Test
+        void deleteUser_developerHasAccess() {
+
+            //given
+            UUID userId = UUID.randomUUID();
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .delete("/users/regular/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo("Deleted user with id: " + userId);
+        }
+
+        @Test
+        void deleteUser_unauthorized() {
+
+            //given
+            UUID userId = UUID.randomUUID();
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .delete("/users/regular/{id}", userId)
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(responseEntity.getBody()).isBlank();
+        }
+
+        @Test
+        void deleteUser_developerHasNoAccess() {
+
+            //given
+            UUID userId = UUID.randomUUID();
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .delete("/users/super/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(responseEntity.getBody()).isBlank();
+        }
+    }
+
 
     private String getAccessToken(String code) {
         //when
