@@ -11,6 +11,7 @@
     <modules>
         <module>pkce</module>
         <module>resource-server</module>
+        <module>api-gateway</module>
     </modules>
 
     <properties>

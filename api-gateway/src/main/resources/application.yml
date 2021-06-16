@@ -4,7 +4,7 @@ server:
 app:
   routes:
     uri:
-      usera-api: http://localhost:8081
+      users-api: http://localhost:8081
 
 spring:
   application:
@@ -13,7 +13,7 @@ spring:
     gateway:
       routes:
         - id: usersApi
-          uri: ${app.routes.uri.usera-api}/users/**
+          uri: ${app.routes.uri.users-api}/users/**
           predicates:
             - Path=/users/**
             - Method=POST,PUT,GET,DELETE
