@@ -127,7 +127,7 @@ class WebSecurityTest {
         log.debug("Jwt Access Token: {}", jwtAccessToken);
 
         RequestEntity<?> requestEntity = RequestEntity
-                .get("/users/status/check")
+                .get("/users/scope/status/check")
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
@@ -148,7 +148,7 @@ class WebSecurityTest {
         log.debug("Jwt Access Token: {}", jwtAccessToken);
 
         RequestEntity<?> requestEntity = RequestEntity
-                .get("/users/status/check")
+                .get("/users/scope/status/check")
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);

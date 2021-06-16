@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("users")
 public class UsersController {
 
-    @GetMapping("/status/check")
+    @GetMapping({"/status/check","/scope/status/check","/role/status/check"})
     public String status(){
         return "Working...";
     }

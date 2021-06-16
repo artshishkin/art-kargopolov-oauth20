@@ -11,7 +11,9 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests((requests) -> requests
-                .antMatchers(HttpMethod.GET, "/users/**").hasAuthority("SCOPE_profile")
+                .antMatchers(HttpMethod.GET, "/users/status/check").permitAll()
+                .antMatchers(HttpMethod.GET, "/users/scope/**").hasAuthority("SCOPE_profile")
+                .antMatchers(HttpMethod.GET, "/users/role/**").hasRole("developer") //.hasAnyRole("developer","user")
                 .anyRequest().authenticated());
         http.oauth2ResourceServer().jwt();
     }
