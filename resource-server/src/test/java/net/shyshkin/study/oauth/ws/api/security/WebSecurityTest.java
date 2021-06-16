@@ -139,7 +139,6 @@ class WebSecurityTest {
 
     @Test
     @Order(30)
-    @Disabled("Broken - it needs to modify KeycloakRoleConverter")
     void withProperScope() {
 
         String code = getAuthorizationCode("openid profile");
