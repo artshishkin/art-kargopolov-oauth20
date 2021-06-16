@@ -3,6 +3,8 @@ package net.shyshkin.study.oauth.ws.api.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -37,17 +39,31 @@ public class UsersController {
         return "Deleted Super user with id: " + id;
     }
 
-    @PreAuthorize("hasRole('developer') or principal.username == #name")
+    @PreAuthorize("hasRole('developer') or principal.getClaimAsString('preferred_username') == #name")
     @PutMapping("/regular/{name}")
     public String updateUserByUserName(@PathVariable String name) {
         log.debug("updateUserByUserName invoked (PreAuthorize)");
         return "Updated user with name: " + name;
     }
 
-    @PreAuthorize("hasAuthority('ROLE_admin') or principal.username == #name")
+    @PreAuthorize("hasAuthority('ROLE_admin') or principal.getClaimAsString('preferred_username') == #name")
     @PutMapping("/super/{name}")
     public String updateSuperUserByUserName(@PathVariable String name) {
         log.debug("updateSuperUserByUserName invoked (PreAuthorize)");
         return "Updated super user with name: " + name;
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_admin') or #jwt.subject == #id")
+    @PutMapping("/byId/super/{id}")
+    public String updateSuperUserById(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+        log.debug("updateSuperUserById invoked (PreAuthorize)");
+        return String.format("Updated super user with id: `%s` and JWT subject: `%s`", id, jwt.getSubject());
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_admin') or principal.subject == #id")
+    @PutMapping("/byId_principal/super/{id}")
+    public String updateSuperUserById(@PathVariable String id) {
+        log.debug("updateSuperUserById invoked (PreAuthorize)");
+        return String.format("Updated super user with id: `%s` and same JWT subject", id);
     }
 }

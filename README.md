@@ -152,6 +152,10 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
     -  Role Mappings
     -  Move `developer` to Assigned Role
 
+####  Section 8: Resource Server: Method Level Security
 
+#####  66. Reading UserId from JWT Access Token
+
+Jwt.sub - stands for subject - most of the time it equals User ID
 
         
