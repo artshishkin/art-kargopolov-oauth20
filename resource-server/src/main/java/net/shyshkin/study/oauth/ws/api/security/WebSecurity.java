@@ -14,7 +14,9 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         http.authorizeRequests((requests) -> requests
                 .antMatchers(HttpMethod.GET, "/users/status/check").permitAll()
                 .antMatchers(HttpMethod.GET, "/users/scope/**").hasAuthority("SCOPE_profile")
-                .antMatchers(HttpMethod.GET, "/users/role/**").hasRole("developer") //.hasAnyRole("developer","user")
+                .antMatchers(HttpMethod.GET, "/users/role/developer/**").hasRole("developer") //.hasAnyRole("developer","user")
+                .antMatchers(HttpMethod.GET, "/users/role/admin/**").hasRole("admin")
+                .antMatchers(HttpMethod.GET, "/users/role/no_developer/**").not().hasRole("developer")
                 .anyRequest().authenticated());
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
