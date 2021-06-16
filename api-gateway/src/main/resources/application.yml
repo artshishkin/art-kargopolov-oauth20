@@ -1,0 +1,25 @@
+server:
+  port: 8090
+
+app:
+  routes:
+    uri:
+      usera-api: http://localhost:8081
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: usersApi
+          uri: ${app.routes.uri.usera-api}/users/**
+          predicates:
+            - Path=/users/**
+            - Method=POST,PUT,GET,DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+
+
+
+
