@@ -139,6 +139,19 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
     -  Wait for `export/realm-export.json` to be changed
     -  Stop docker compose          
 
+####  Section 7: Role Based Access Control with Keycloak
+
+#####  54. Creating User Role
+
+-  Log in into Keycloak management console as admin
+-  Roles -> 
+    -  Add role -> `developer`
+    -  Save
+-  Assign Role to the user
+    -  Users -> shyshkin.art
+    -  Role Mappings
+    -  Move `developer` to Assigned Role
+
 
 
         

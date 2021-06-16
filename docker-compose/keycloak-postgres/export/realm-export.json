@@ -1976,6 +1976,13 @@
       "containerId" : "katarinazart",
       "attributes" : { }
     }, {
+      "id" : "4c7b1d2b-6f5d-48c5-9498-e25f8d301e0f",
+      "name" : "developer",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "katarinazart",
+      "attributes" : { }
+    }, {
       "id" : "0cea220a-54e8-49d7-a62d-b7e58aec5d52",
       "name" : "default-roles-katarinazart",
       "description" : "${role_default-roles}",
@@ -2315,7 +2322,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-katarinazart" ],
+    "realmRoles" : [ "developer", "default-roles-katarinazart" ],
     "notBefore" : 0,
     "groups" : [ ]
   } ],
