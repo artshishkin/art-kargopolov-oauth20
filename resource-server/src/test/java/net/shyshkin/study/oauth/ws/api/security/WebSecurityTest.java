@@ -164,12 +164,7 @@ class WebSecurityTest {
     @Order(40)
     void developerHasAccess() {
 
-        if (jwtAccessToken == null) {
-            String code = getAuthorizationCode("openid");
-            log.debug("Code from keycloak: {}", code);
-            jwtAccessToken = getAccessToken(code);
-        }
-        log.debug("Jwt Access Token: {}", jwtAccessToken);
+        checkJwtExists();
 
         RequestEntity<?> requestEntity = RequestEntity
                 .get("/users/role/developer/status/check")
@@ -189,12 +184,7 @@ class WebSecurityTest {
     })
     void developerHasNoAccess(String uri) {
 
-        if (jwtAccessToken == null) {
-            String code = getAuthorizationCode("openid");
-            log.debug("Code from keycloak: {}", code);
-            jwtAccessToken = getAccessToken(code);
-        }
-        log.debug("Jwt Access Token: {}", jwtAccessToken);
+        checkJwtExists();
 
         RequestEntity<?> requestEntity = RequestEntity
                 .get(uri)
@@ -211,12 +201,7 @@ class WebSecurityTest {
 
         @BeforeEach
         void setUp() {
-            if (jwtAccessToken == null) {
-                String code = getAuthorizationCode("openid");
-                log.debug("Code from keycloak: {}", code);
-                jwtAccessToken = getAccessToken(code);
-            }
-            log.debug("Jwt Access Token: {}", jwtAccessToken);
+            checkJwtExists();
         }
 
         @Test
@@ -276,6 +261,145 @@ class WebSecurityTest {
         }
     }
 
+    @Nested
+    class PreAuthorizeTests {
+
+        @BeforeEach
+        void setUp() {
+            checkJwtExists();
+        }
+
+        @Test
+        void updateUser_developerHasAccess() {
+
+            //given
+            String name = "any.name";
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .put("/users/regular/{name}", name)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo("Updated user with name: " + name);
+        }
+
+        @Test
+        void updateSuperUser_developerHasNoAccess() {
+
+            //given
+            String name = "any.name";
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .put("/users/super/{name}", name)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(responseEntity.getBody()).isBlank();
+        }
+
+        @Test
+        void updateSuperUser_ownerHasAccess() {
+
+            //given
+            String name = "shyshkin.art";
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .put("/users/super/{name}", name)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo("Updated super user with name: " + name);
+        }
+
+        @Test
+        void updateSuperUserById_ownerHasAccess() {
+
+            //given
+            String userId = "624ba8cd-b02f-4405-b6e7-6855a4bb3452"; //from `realm-export.json`
+            String expectedResponseBody = String.format("Updated super user with id: `%s` and JWT subject: `%s`", userId, userId);
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .put("/users/byId/super/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo(expectedResponseBody);
+        }
+
+        @Test
+        void updateSuperUserById_usingPrincipal_ownerHasAccess() {
+
+            //given
+            String userId = "624ba8cd-b02f-4405-b6e7-6855a4bb3452"; //from `realm-export.json`
+            String expectedResponseBody = String.format("Updated super user with id: `%s` and same JWT subject", userId);
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .put("/users/byId_principal/super/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo(expectedResponseBody);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "/users/byId/super/{id}",
+                "/users/byId_principal/super/{id}"
+        })
+        void updateSuperUserById_noAdmin_and_noOwner_have_NO_Access(String uri) {
+
+            //given
+            String userId = UUID.randomUUID().toString();
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .put(uri, userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(responseEntity.getBody()).isBlank();
+        }
+
+
+    }
+
+    private void checkJwtExists() {
+        if (jwtAccessToken == null) {
+            String code = getAuthorizationCode("openid profile");
+            log.debug("Code from keycloak: {}", code);
+            jwtAccessToken = getAccessToken(code);
+        }
+        log.debug("Jwt Access Token: {}", jwtAccessToken);
+    }
 
     private String getAccessToken(String code) {
         //when
