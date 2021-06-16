@@ -3,6 +3,7 @@ package net.shyshkin.study.oauth.ws.api.controllers;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.dto.UserDto;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -68,6 +69,7 @@ public class UsersController {
         return String.format("Updated super user with id: `%s` and same JWT subject", id);
     }
 
+    @PostAuthorize("hasAuthority('ROLE_admin') or returnObject.id == #jwt.subject")
     @GetMapping("/byId/super/{id}")
     public UserDto getSuperUserById(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         log.debug("getSuperUserById invoked (PostAuthorize)");
