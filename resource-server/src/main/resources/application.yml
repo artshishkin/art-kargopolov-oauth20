@@ -1,11 +1,38 @@
 server.port: 8081
 
+spring.application.name: users-service
+
 app.oauth.uri: http://keycloak:8080
+
 
 # We can use one of these properties
 spring.security.oauth2.resourceserver.jwt:
 #  issuer-uri: http://localhost:8080/auth/realms/katarinazart
   jwk-set-uri: ${app.oauth.uri}/auth/realms/katarinazart/protocol/openid-connect/certs
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:8080/eureka
+#    enabled: false
+
+management:
+  endpoint:
+    info:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - info
+          - health
+info:
+  app:
+    name: '@project.name@'
+    version: '@project.version@'
+    encoding: '@project.build.sourceEncoding@'
+  service:
+    name: ${spring.application.name}
 
 ---
 spring:
@@ -14,3 +41,8 @@ spring:
       on-profile: local
 
 app.oauth.uri: http://localhost:8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
