@@ -1,7 +1,7 @@
 package net.shyshkin.study.oauth.ws.api;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.ws.api.dto.OAuthResponse;
+import net.shyshkin.study.oauth.ws.api.albums.dto.OAuthResponse;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;

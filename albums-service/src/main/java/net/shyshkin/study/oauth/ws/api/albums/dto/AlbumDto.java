@@ -1,4 +1,4 @@
-package net.shyshkin.study.oauth.ws.api.dto;
+package net.shyshkin.study.oauth.ws.api.albums.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserDto {
+public class AlbumDto {
     private String id;
-    private String firstName;
-    private String lastName;
+    private String title;
+    private String description;
+    private String url;
+    private String userId;
 }

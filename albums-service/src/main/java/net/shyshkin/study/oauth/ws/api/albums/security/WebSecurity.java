@@ -1,10 +1,11 @@
-package net.shyshkin.study.oauth.ws.api.security;
+package net.shyshkin.study.oauth.ws.api.albums.security;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 @EnableWebSecurity
@@ -15,11 +16,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests((requests) -> requests
                 .antMatchers(HttpMethod.GET, "/actuator/health").permitAll()
-                .antMatchers(HttpMethod.GET, "/users/status/check").authenticated()
-                .antMatchers(HttpMethod.GET, "/users/scope/**").hasAuthority("SCOPE_profile")
-                .antMatchers(HttpMethod.GET, "/users/role/developer/**").hasRole("developer") //.hasAnyRole("developer","user")
-                .antMatchers(HttpMethod.GET, "/users/role/admin/**").hasRole("admin")
-                .antMatchers(HttpMethod.GET, "/users/role/no_developer/**").not().hasRole("developer")
+                .antMatchers(HttpMethod.GET, "/albums/**").hasRole("developer") //.hasAnyRole("developer","user")
                 .anyRequest().authenticated());
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
@@ -28,5 +25,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         http.oauth2ResourceServer()
                 .jwt()
                 .jwtAuthenticationConverter(jwtAuthenticationConverter);
+
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 }
