@@ -21,6 +21,7 @@
         <module>api-gateway</module>
         <module>albums-service</module>
         <module>photos-service</module>
+        <module>discovery-service</module>
     </modules>
 
     <properties>
