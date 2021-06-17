@@ -4,7 +4,9 @@ server:
 app:
   routes:
     uri:
-      users-api: http://localhost:8081
+      users-api: http://users-service:8080
+      photos-api: http://photos-service:8080
+      albums-api: http://albums-service:8080
 
 spring:
   application:
@@ -19,6 +21,33 @@ spring:
             - Method=POST,PUT,GET,DELETE
           filters:
             - RemoveRequestHeader=Cookie
+        - id: albumsApi
+          uri: ${app.routes.uri.albums-api}/albums/**
+          predicates:
+            - Path=/albums/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+        - id: photosApi
+          uri: ${app.routes.uri.photos-api}/photos/**
+          predicates:
+            - Path=/photos/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+app:
+  routes:
+    uri:
+      users-api: http://localhost:8081
+      photos-api: http://localhost:8083
+      albums-api: http://localhost:8082
 
 
 
