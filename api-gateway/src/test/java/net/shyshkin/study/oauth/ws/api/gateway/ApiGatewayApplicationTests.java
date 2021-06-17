@@ -2,7 +2,9 @@ package net.shyshkin.study.oauth.ws.api.gateway;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.gateway.dto.OAuthResponse;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -40,10 +42,11 @@ import static org.awaitility.Awaitility.await;
 @Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
-        "app.routes.uri.users-api=${USERS_SERVICE_URI}"
+        "app.routes.uri.users-api=${USERS_SERVICE_URI}",
+        "app.routes.uri.albums-api=${ALBUMS_SERVICE_URI}",
+        "app.routes.uri.photos-api=${PHOTOS_SERVICE_URI}",
 })
 @ContextConfiguration(initializers = ApiGatewayApplicationTests.Initializer.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ApiGatewayApplicationTests {
 
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
@@ -100,6 +103,22 @@ class ApiGatewayApplicationTests {
             .dependsOn(keycloak)
             .waitingFor(Wait.forHealthcheck());
 
+    @Container
+    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/oauth20-albums-service")
+            .withNetwork(network)
+            .withNetworkAliases("albums-service")
+            .withExposedPorts(8080)
+            .dependsOn(keycloak)
+            .waitingFor(Wait.forHealthcheck());
+
+    @Container
+    static GenericContainer<?> photosService = new GenericContainer<>("artarkatesoft/oauth20-photos-service")
+            .withNetwork(network)
+            .withNetworkAliases("photos-service")
+            .withExposedPorts(8080)
+            .dependsOn(keycloak)
+            .waitingFor(Wait.forHealthcheck());
+
     RemoteWebDriver driver;
 
     @Autowired
@@ -131,79 +150,230 @@ class ApiGatewayApplicationTests {
                 .build();
     }
 
-    @Test
-    @Order(10)
-    void existingEndpointForUnauthorizedUser_shouldBe401_UNAUTHORIZED() {
+    @Nested
+    class UsersServiceTests {
 
-        //given
-        checkJwtExists();
+        @BeforeEach
+        void setUp() {
+            //given
+            checkJwtExists();
+        }
 
-        //when
-        webTestClient.get().uri("/users/status/check")
-                .exchange()
+        @Test
+        void existingEndpointForUnauthorizedUser_shouldBe401_UNAUTHORIZED() {
 
-                //then
-                .expectStatus().isUnauthorized()
-                .expectBody()
-                .isEmpty();
+            //when
+            webTestClient.get().uri("/users/status/check")
+                    .exchange()
+
+                    //then
+                    .expectStatus().isUnauthorized()
+                    .expectBody()
+                    .isEmpty();
+        }
+
+        @Test
+        void existingEndpointForAnyAuthorizedUser() {
+
+            //when
+            webTestClient.get().uri("/users/status/check")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isOk()
+                    .expectBody(String.class)
+                    .isEqualTo("Working...");
+        }
+
+        @Test
+        void nonExistingEndpoint_should404NotFound() {
+
+            //when
+            webTestClient.get().uri("/users/status/checkNotFound")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isNotFound()
+                    .expectBody()
+                    .jsonPath("$.timestamp").exists()
+                    .jsonPath("$.status").isEqualTo(404)
+                    .jsonPath("$.error").isEqualTo("Not Found")
+                    .jsonPath("$.path").isEqualTo("/users/status/checkNotFound");
+        }
+
+        @Test
+        void updateSuperUser_developerHasNoAccess() {
+
+            //given
+            String name = "any.name";
+
+            //when
+            webTestClient.put().uri("/users/super/{name}", name)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isForbidden()
+                    .expectBody()
+                    .isEmpty();
+        }
     }
 
-    @Test
-    @Order(20)
-    void existingEndpointForAnyAuthorizedUser() {
+    @Nested
+    class AlbumsServiceTests {
 
-        //given
-        checkJwtExists();
+        @BeforeEach
+        void setUp() {
+            //given
+            checkJwtExists();
+        }
 
-        //when
-        webTestClient.get().uri("/users/status/check")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
-                .exchange()
+        @Test
+        void existingEndpointForUnauthorizedUser_shouldBe401_UNAUTHORIZED() {
 
-                //then
-                .expectStatus().isOk()
-                .expectBody(String.class)
-                .isEqualTo("Working...");
+            //when
+            webTestClient.get().uri("/albums")
+                    .exchange()
+
+                    //then
+                    .expectStatus().isUnauthorized()
+                    .expectBody()
+                    .isEmpty();
+        }
+
+        @Test
+        void existingEndpointForAnyAuthorizedUser() {
+
+            //when
+            webTestClient.get().uri("/albums")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isOk()
+                    .expectBody()
+                    .jsonPath("$").isArray()
+                    .jsonPath("$.[0]").exists()
+                    .jsonPath("$.[0].id").isNotEmpty()
+                    .jsonPath("$.[0].title").isNotEmpty()
+                    .jsonPath("$.[0].description").isNotEmpty()
+                    .jsonPath("$.[0].url").isNotEmpty()
+                    .jsonPath("$.[0].userId").isNotEmpty()
+                    .jsonPath("$.[1]").exists()
+                    .jsonPath("$.[2]").doesNotExist()
+            ;
+        }
+
+        @Test
+        void nonExistingEndpoint_should404NotFound() {
+
+            //when
+            webTestClient.get().uri("/albumzzz")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isNotFound()
+                    .expectBody()
+                    .jsonPath("$.timestamp").exists()
+                    .jsonPath("$.status").isEqualTo(404)
+                    .jsonPath("$.error").isEqualTo("Not Found")
+                    .jsonPath("$.path").isEqualTo("/albumzzz");
+        }
+
+        @Test
+        void getSuperSecretEndpoint_developerHasNoAccess() {
+
+            //when
+            webTestClient.get().uri("/albums/super-secret")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isForbidden()
+                    .expectBody()
+                    .isEmpty();
+        }
     }
 
-    @Test
-    @Order(30)
-    void nonExistingEndpoint_should404NotFound() {
+    @Nested
+    class PhotosServiceTests {
 
-        //given
-        checkJwtExists();
+        @BeforeEach
+        void setUp() {
+            //given
+            checkJwtExists();
+        }
 
-        //when
-        webTestClient.get().uri("/users/status/checkNotFound")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
-                .exchange()
+        @Test
+        void existingEndpointForUnauthorizedUser_shouldBe401_UNAUTHORIZED() {
 
-                //then
-                .expectStatus().isNotFound()
-                .expectBody()
-                .jsonPath("$.timestamp").exists()
-                .jsonPath("$.status").isEqualTo(404)
-                .jsonPath("$.error").isEqualTo("Not Found")
-                .jsonPath("$.path").isEqualTo("/users/status/checkNotFound");
-    }
+            //when
+            webTestClient.get().uri("/photos")
+                    .exchange()
 
-    @Test
-    @Order(40)
-    void updateSuperUser_developerHasNoAccess() {
+                    //then
+                    .expectStatus().isUnauthorized()
+                    .expectBody()
+                    .isEmpty();
+        }
 
-        //given
-        checkJwtExists();
-        String name = "any.name";
+        @Test
+        void existingEndpointForAnyAuthorizedUser() {
 
-        //when
-        webTestClient.put().uri("/users/super/{name}", name)
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
-                .exchange()
+            //when
+            webTestClient.get().uri("/photos")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
 
-                //then
-                .expectStatus().isForbidden()
-                .expectBody()
-                .isEmpty();
+                    //then
+                    .expectStatus().isOk()
+                    .expectBody()
+                    .jsonPath("$").isArray()
+                    .jsonPath("$.[0]").exists()
+                    .jsonPath("$.[0].id").isNotEmpty()
+                    .jsonPath("$.[0].title").isNotEmpty()
+                    .jsonPath("$.[0].description").isNotEmpty()
+                    .jsonPath("$.[0].url").isNotEmpty()
+                    .jsonPath("$.[0].userId").isNotEmpty()
+                    .jsonPath("$.[0].albumId").isNotEmpty()
+                    .jsonPath("$.[1]").exists()
+                    .jsonPath("$.[2]").doesNotExist()
+            ;
+        }
+
+        @Test
+        void nonExistingEndpoint_should404NotFound() {
+
+            //when
+            webTestClient.get().uri("/photozzz")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isNotFound()
+                    .expectBody()
+                    .jsonPath("$.timestamp").exists()
+                    .jsonPath("$.status").isEqualTo(404)
+                    .jsonPath("$.error").isEqualTo("Not Found")
+                    .jsonPath("$.path").isEqualTo("/photozzz");
+        }
+
+        @Test
+        void getSuperSecretEndpoint_developerHasNoAccess() {
+
+            //when
+            webTestClient.get().uri("/photos/super-secret")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isForbidden()
+                    .expectBody()
+                    .isEmpty();
+        }
     }
 
     private void checkJwtExists() {
@@ -211,8 +381,8 @@ class ApiGatewayApplicationTests {
             String code = getAuthorizationCode("openid profile");
             log.debug("Code from keycloak: {}", code);
             jwtAccessToken = getAccessToken(code);
+            log.debug("Jwt Access Token: {}", jwtAccessToken);
         }
-        log.debug("Jwt Access Token: {}", jwtAccessToken);
     }
 
     private String getAccessToken(String code) {
@@ -306,8 +476,20 @@ class ApiGatewayApplicationTests {
             System.setProperty("OAUTH_HOST", keycloak.getHost());
             System.setProperty("OAUTH_PORT", String.valueOf(keycloak.getMappedPort(8080)));
 
-            String userServiceUri = String.format("http://%s:%d", usersService.getHost(), usersService.getMappedPort(8080));
-            System.setProperty("USERS_SERVICE_URI", userServiceUri);
+            setUriSystemPropertyForService(usersService);
+            setUriSystemPropertyForService(albumsService);
+            setUriSystemPropertyForService(photosService);
+        }
+
+        private void setUriSystemPropertyForService(GenericContainer<?> service) {
+            String serviceName = service.getNetworkAliases()
+                    .stream()
+                    .filter(alias -> alias.contains("service"))
+                    .findAny().get();
+            String propertyName = serviceName.replace("-", "_").toUpperCase().concat("_URI");
+            String serviceUri = String.format("http://%s:%d", service.getHost(), service.getMappedPort(8080));
+            log.debug("Property `{}` set to `{}`", propertyName, serviceUri);
+            System.setProperty(propertyName, serviceUri);
         }
     }
 }
