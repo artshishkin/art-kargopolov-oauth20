@@ -158,4 +158,29 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
 
 Jwt.sub - stands for subject - most of the time it equals User ID
 
+####  Section 9: Resource Server Behind API Gateway
+
+#####  78. Trying how it works
+
+#####  Enabling password grant_type
+
+-  Sign in into Keycloak Administration Console as `admin`.
+-  Clients -> `photo-app-code-flow-client`
+-  Settings:
+    -  Direct Access Grants Enabled: `true`
+    -  Save
+-  Test using Postman or curl
+```shell script
+curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'grant_type=password' \
+--data-urlencode 'username=shyshkin.art' \
+--data-urlencode 'password=password_art_1' \
+--data-urlencode 'client_id=photo-app-code-flow-client' \
+--data-urlencode 'client_secret=ee68a49e-5ac6-4673-9465-51e53de3fb0e' \
+--data-urlencode 'scope=openid profile'
+```    
+-  Must return correct access token 
+
+
         

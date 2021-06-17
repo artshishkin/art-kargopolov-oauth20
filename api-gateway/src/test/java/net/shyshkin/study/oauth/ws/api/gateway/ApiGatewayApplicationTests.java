@@ -133,7 +133,6 @@ class ApiGatewayApplicationTests {
     @BeforeEach
     void setUp() {
 
-        driver = browser.getWebDriver();
         Integer keycloakPort = keycloak.getMappedPort(8080);
         String keycloakHost = keycloak.getHost();
         String keycloakUri = String.format("http://%s:%d", keycloakHost, keycloakPort);
@@ -376,13 +375,52 @@ class ApiGatewayApplicationTests {
         }
     }
 
+    @Nested
+    class AccessTokenUsingPasswordGrantTypeTests {
+
+        @Test
+        void getJwtTokenTest() {
+
+            //when
+            String accessToken = getAccessTokenUsingPasswordGrantType();
+
+            //then
+            assertThat(accessToken).isNotBlank();
+        }
+
+        @Test
+        void checkTokenIsCorrect() {
+
+            //given
+            String accessToken = getAccessTokenUsingPasswordGrantType();
+            assertThat(accessToken).isNotBlank();
+
+            //when
+            webTestClient.get().uri("/users/status/check")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isOk()
+                    .expectBody(String.class)
+                    .isEqualTo("Working...");
+        }
+    }
+
     private void checkJwtExists() {
         if (jwtAccessToken == null) {
-            String code = getAuthorizationCode("openid profile");
-            log.debug("Code from keycloak: {}", code);
-            jwtAccessToken = getAccessToken(code);
+            jwtAccessToken = getAccessTokenUsingAuthorizationCodeGrantType();
             log.debug("Jwt Access Token: {}", jwtAccessToken);
         }
+    }
+
+    private String getAccessTokenUsingAuthorizationCodeGrantType() {
+
+        driver = browser.getWebDriver();
+
+        String code = getAuthorizationCode("openid profile");
+        log.debug("Code from keycloak: {}", code);
+        return getAccessToken(code);
     }
 
     private String getAccessToken(String code) {
@@ -393,6 +431,36 @@ class ApiGatewayApplicationTests {
         map.add("client_secret", "ee68a49e-5ac6-4673-9465-51e53de3fb0e");
         map.add("code", code);
         map.add("redirect_uri", "http://localhost:8083/callback");
+
+        ResponseEntity<OAuthResponse> responseEntity = keycloakWebClient
+                .post()
+                .uri("/auth/realms/katarinazart/protocol/openid-connect/token")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData(map))
+                .retrieve()
+                .toEntity(OAuthResponse.class)
+                .doOnNext(entity -> log.debug("Response from OAuth2.0 server: {}", entity))
+                .block();
+
+        //then
+        log.debug("Response from OAuth2.0 server: {}", responseEntity);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        OAuthResponse oAuthResponse = responseEntity.getBody();
+        assertThat(oAuthResponse)
+                .hasFieldOrProperty("accessToken");
+
+        return oAuthResponse.getAccessToken();
+    }
+
+    private String getAccessTokenUsingPasswordGrantType() {
+        //when
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("grant_type", "password");
+        map.add("username", RESOURCE_OWNER_USERNAME);
+        map.add("password", RESOURCE_OWNER_PASSWORD);
+        map.add("client_id", "photo-app-code-flow-client");
+        map.add("client_secret", "ee68a49e-5ac6-4673-9465-51e53de3fb0e");
+        map.add("scope", "openid profile");
 
         ResponseEntity<OAuthResponse> responseEntity = keycloakWebClient
                 .post()
