@@ -1,4 +1,4 @@
-package net.shyshkin.study.oauth.ws.api.albums.dto;
+package net.shyshkin.study.oauth.ws.api.users.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

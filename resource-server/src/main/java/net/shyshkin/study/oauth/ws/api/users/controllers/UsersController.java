@@ -1,7 +1,7 @@
-package net.shyshkin.study.oauth.ws.api.albums.controllers;
+package net.shyshkin.study.oauth.ws.api.users.controllers;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.ws.api.albums.dto.UserDto;
+import net.shyshkin.study.oauth.ws.api.users.dto.UserDto;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;

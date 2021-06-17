@@ -1,4 +1,4 @@
-package net.shyshkin.study.oauth.ws.api.albums.security;
+package net.shyshkin.study.oauth.ws.api.users.security;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;

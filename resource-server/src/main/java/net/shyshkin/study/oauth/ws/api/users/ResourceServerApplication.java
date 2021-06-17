@@ -1,4 +1,4 @@
-package net.shyshkin.study.oauth.ws.api;
+package net.shyshkin.study.oauth.ws.api.users;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

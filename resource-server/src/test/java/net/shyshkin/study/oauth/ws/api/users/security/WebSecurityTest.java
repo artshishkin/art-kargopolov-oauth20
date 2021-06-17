@@ -1,8 +1,8 @@
-package net.shyshkin.study.oauth.ws.api.albums.security;
+package net.shyshkin.study.oauth.ws.api.users.security;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.ws.api.albums.dto.OAuthResponse;
-import net.shyshkin.study.oauth.ws.api.albums.dto.UserDto;
+import net.shyshkin.study.oauth.ws.api.users.dto.OAuthResponse;
+import net.shyshkin.study.oauth.ws.api.users.dto.UserDto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

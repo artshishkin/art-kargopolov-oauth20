@@ -1,4 +1,4 @@
-package net.shyshkin.study.oauth.ws.api.albums.dto;
+package net.shyshkin.study.oauth.ws.api.users.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

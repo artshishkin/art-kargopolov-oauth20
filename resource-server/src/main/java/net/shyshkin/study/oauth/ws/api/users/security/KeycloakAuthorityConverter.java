@@ -1,4 +1,4 @@
-package net.shyshkin.study.oauth.ws.api.albums.security;
+package net.shyshkin.study.oauth.ws.api.users.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
