@@ -140,6 +140,7 @@ class ApiGatewayLoadBalancingTests {
             .withEnv("eureka.client.enabled", "true")
             .withEnv("spring.profiles.active", "local")
             .withEnv("discovery.service.uri", "http://discovery-service:8080")
+            .withEnv("eureka.client.registry-fetch-interval-seconds", "1")
             .dependsOn(photosService, usersService1, usersService2, discoveryService, albumsService)
             .waitingFor(Wait.forHealthcheck());
 
