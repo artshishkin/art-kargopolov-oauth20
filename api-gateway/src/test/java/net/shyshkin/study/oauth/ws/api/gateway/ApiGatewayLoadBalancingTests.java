@@ -199,11 +199,11 @@ class ApiGatewayLoadBalancingTests {
 
                         //then
                         .expectStatus().isOk()
-                        .expectHeader().exists("SERVER_IP")
+                        .expectHeader().exists("SERVER_HOST")
                         .expectHeader().exists("SERVER_PORT")
                         .expectBody(String.class).isEqualTo("Working...").returnResult();
 
-                List<String> serverHostList = exchangeResult.getResponseHeaders().get("SERVER_IP");
+                List<String> serverHostList = exchangeResult.getResponseHeaders().get("SERVER_HOST");
                 assertThat(serverHostList).hasSize(1);
                 String serverHost = serverHostList.get(0);
 

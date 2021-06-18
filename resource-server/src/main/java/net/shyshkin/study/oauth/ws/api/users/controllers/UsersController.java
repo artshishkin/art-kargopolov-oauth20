@@ -35,7 +35,7 @@ public class UsersController {
         }
         return ResponseEntity.ok()
                 .header("SERVER_PORT", port)
-                .header("SERVER_IP", hostAddress)
+                .header("SERVER_HOST", hostAddress)
                 .body("Working...");
     }
 
