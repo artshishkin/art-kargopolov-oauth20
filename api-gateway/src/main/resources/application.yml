@@ -77,9 +77,9 @@ eureka:
 app:
   routes:
     uri:
-      users-api: http://localhost:8081
-      photos-api: http://localhost:8083
-      albums-api: http://localhost:8082
+      users-api: lb://users-service
+      photos-api: lb://photos-service
+      albums-api: lb://albums-service
 
 
 
