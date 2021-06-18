@@ -36,10 +36,11 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
 
+discovery.service.uri: http://discovery-service:8080
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-service:8080/eureka
+      defaultZone: ${discovery.service.uri}/eureka
     enabled: false
 
 management:
@@ -66,10 +67,10 @@ spring:
     activate:
       on-profile: local
 
+discovery.service.uri: http://localhost:8761
+
 eureka:
   client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
     enabled: true
   instance:
     instance-id: ${spring.application.name}:${app.instance_id:${random.value}}
