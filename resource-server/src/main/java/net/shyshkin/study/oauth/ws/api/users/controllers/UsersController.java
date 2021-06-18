@@ -1,7 +1,10 @@
 package net.shyshkin.study.oauth.ws.api.users.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.users.dto.UserDto;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,14 +12,31 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 @Slf4j
 @RestController
 @RequestMapping("users")
+@RequiredArgsConstructor
 public class UsersController {
 
+    private final Environment environment;
+
     @GetMapping({"/status/check", "/scope/status/check", "/role/developer/status/check"})
-    public String status() {
-        return "Working...";
+    public ResponseEntity<String> status() {
+
+        String port = environment.getProperty("local.server.port");
+        String hostAddress;
+        try {
+            hostAddress = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            hostAddress = "UNKNOWN";
+        }
+        return ResponseEntity.ok()
+                .header("SERVER_PORT", port)
+                .header("SERVER_IP", hostAddress)
+                .body("Working...");
     }
 
     @GetMapping({"/role/admin/status/check"})
