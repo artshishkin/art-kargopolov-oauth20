@@ -29,12 +29,15 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -149,6 +152,8 @@ class ApiGatewayLoadBalancingTests {
 
     static String jwtAccessToken;
 
+    private static WebTestClient discoveryServiceWebTestClient;
+
     @BeforeEach
     void setUp() {
 
@@ -179,6 +184,7 @@ class ApiGatewayLoadBalancingTests {
         void setUp() {
             //given
             checkJwtExists();
+            awaitForServiceToRegisterWithEureka("USERS-SERVICE", 2);
         }
 
         @Test
@@ -273,6 +279,7 @@ class ApiGatewayLoadBalancingTests {
             void setUp() {
                 //given
                 checkJwtExists();
+                awaitForServiceToRegisterWithEureka("USERS-SERVICE", 2);
             }
 
             @Test
@@ -344,6 +351,7 @@ class ApiGatewayLoadBalancingTests {
             void setUp() {
                 //given
                 checkJwtExists();
+                awaitForServiceToRegisterWithEureka("ALBUMS-SERVICE", 1);
             }
 
             @Test
@@ -421,6 +429,7 @@ class ApiGatewayLoadBalancingTests {
             void setUp() {
                 //given
                 checkJwtExists();
+                awaitForServiceToRegisterWithEureka("PHOTOS-SERVICE", 1);
             }
 
             @Test
@@ -528,6 +537,52 @@ class ApiGatewayLoadBalancingTests {
 
         return oAuthResponse.getAccessToken();
     }
+
+    private void awaitForServiceToRegisterWithEureka(String serviceName, int instanceCount) {
+
+        //given
+        checkDiscoveryServiceClientInitialized();
+        int lastInstanceIndex = instanceCount - 1;
+
+        //when
+        await()
+                .timeout(10, TimeUnit.SECONDS)
+                .untilAsserted(() ->
+                        discoveryServiceWebTestClient
+                                .get().uri("/eureka/apps/{app}", serviceName)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .exchange()
+
+                                //then
+                                .expectStatus().isOk()
+                                .expectBody()
+                                .consumeWith(result -> {
+                                    byte[] responseBodyBytes = result.getResponseBody();
+                                    String responseString = new String(responseBodyBytes, StandardCharsets.UTF_8);
+                                    log.debug("Getting {} characteristics from Eureka, response: {}", serviceName, responseString);
+                                })
+                                .jsonPath("$.application.name").isEqualTo(serviceName)
+                                .jsonPath("$.application.instance[%d].status", lastInstanceIndex).isEqualTo("UP")
+//                                .jsonPath("$.application.instance.length()").isEqualTo(instanceCount) //does not work
+
+                );
+    }
+
+    private void checkDiscoveryServiceClientInitialized() {
+
+        if (discoveryServiceWebTestClient == null) {
+
+            Integer discoveryPort = discoveryService.getMappedPort(8080);
+            String discoveryHost = discoveryService.getHost();
+            String discoveryUri = String.format("http://%s:%d", discoveryHost, discoveryPort);
+
+            discoveryServiceWebTestClient = WebTestClient
+                    .bindToServer()
+                    .baseUrl(discoveryUri)
+                    .build();
+        }
+    }
+
 
     static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
