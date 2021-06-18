@@ -2,6 +2,7 @@ package net.shyshkin.study.oauth.ws.api.gateway;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.gateway.dto.OAuthResponse;
+import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,10 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -90,7 +94,16 @@ class ApiGatewayLoadBalancingTests {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> usersService = new GenericContainer<>("artarkatesoft/oauth20-resource-server")
+    static GenericContainer<?> usersService1 = new GenericContainer<>("artarkatesoft/oauth20-resource-server")
+            .withNetwork(network)
+            .withNetworkAliases("users-service")
+            .withExposedPorts(8080)
+            .withEnv("eureka.client.enabled", "true")
+            .dependsOn(keycloak, discoveryService)
+            .waitingFor(Wait.forHealthcheck());
+
+    @Container
+    static GenericContainer<?> usersService2 = new GenericContainer<>("artarkatesoft/oauth20-resource-server")
             .withNetwork(network)
             .withNetworkAliases("users-service")
             .withExposedPorts(8080)
@@ -104,7 +117,7 @@ class ApiGatewayLoadBalancingTests {
             .withNetworkAliases("albums-service")
             .withExposedPorts(8080)
             .withEnv("eureka.client.enabled", "true")
-            .dependsOn(keycloak, discoveryService)
+            .dependsOn(keycloak, discoveryService, usersService1)  //fake dependency to start users-service before this service
             .waitingFor(Wait.forHealthcheck());
 
     @Container
@@ -113,7 +126,7 @@ class ApiGatewayLoadBalancingTests {
             .withNetworkAliases("photos-service")
             .withExposedPorts(8080)
             .withEnv("eureka.client.enabled", "true")
-            .dependsOn(keycloak, discoveryService)
+            .dependsOn(keycloak, discoveryService, usersService2)  //fake dependency to start users-service before this service
             .waitingFor(Wait.forHealthcheck());
 
     @Container
@@ -121,8 +134,10 @@ class ApiGatewayLoadBalancingTests {
             .withNetwork(network)
             .withNetworkAliases("gateway-service")
             .withExposedPorts(8080)
-            .withEnv("eureka.client.enabled","true")
-            .dependsOn(photosService, usersService, discoveryService, albumsService)
+            .withEnv("eureka.client.enabled", "true")
+            .withEnv("spring.profiles.active", "local")
+            .withEnv("discovery.service.uri", "http://discovery-service:8080")
+            .dependsOn(photosService, usersService1, usersService2, discoveryService, albumsService)
             .waitingFor(Wait.forHealthcheck());
 
     @Autowired
@@ -155,6 +170,65 @@ class ApiGatewayLoadBalancingTests {
                 .baseUrl(gatewayUri)
 //                .defaultHeaders(headers -> headers.setBearerAuth(jwtAccessToken))
                 .build();
+    }
+
+    @Nested
+    class LoadBalancingTests {
+
+        @BeforeEach
+        void setUp() {
+            //given
+            checkJwtExists();
+        }
+
+        @Test
+        void loadBalancingBetween2UsersServices() throws InterruptedException {
+
+            //given
+//            Thread.sleep(120000);
+            int TOTAL_INVOCATION_COUNT = 100;
+            int HOSTS_COUNT = 2;
+            Map<String, Integer> hostsInvocationCount = new HashMap<>();
+
+            //when
+            for (int i = 0; i < TOTAL_INVOCATION_COUNT; i++) {
+                var exchangeResult = webTestClient
+                        .get().uri("/users/role/developer/status/check")
+                        .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                        .exchange()
+
+                        //then
+                        .expectStatus().isOk()
+                        .expectHeader().exists("SERVER_IP")
+                        .expectHeader().exists("SERVER_PORT")
+                        .expectBody(String.class).isEqualTo("Working...").returnResult();
+
+                List<String> serverHostList = exchangeResult.getResponseHeaders().get("SERVER_IP");
+                assertThat(serverHostList).hasSize(1);
+                String serverHost = serverHostList.get(0);
+
+                List<String> serverPortList = exchangeResult.getResponseHeaders().get("SERVER_PORT");
+                assertThat(serverPortList).hasSize(1);
+                String serverPort = serverPortList.get(0);
+
+                String serverUri = String.format("%s:%s", serverHost, serverPort);
+
+                hostsInvocationCount.merge(serverUri, 1, Integer::sum);
+            }
+
+            hostsInvocationCount.forEach(
+                    (host, count) -> log.debug("host `{}` was invoked {} times", host, count)
+            );
+
+            int hostsSize = hostsInvocationCount.size();
+            assertThat(hostsSize).isEqualTo(HOSTS_COUNT);
+
+            Optional<Integer> totalCount = hostsInvocationCount.values().stream().reduce(Integer::sum);
+            assertThat(totalCount).contains(TOTAL_INVOCATION_COUNT);
+
+            hostsInvocationCount.forEach(
+                    (host, count) -> assertThat(count).isCloseTo(TOTAL_INVOCATION_COUNT / HOSTS_COUNT, Percentage.withPercentage(0.9)));
+        }
     }
 
     @Nested
