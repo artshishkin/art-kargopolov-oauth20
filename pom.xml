@@ -22,6 +22,7 @@
         <module>albums-service</module>
         <module>photos-service</module>
         <module>discovery-service</module>
+        <module>photo-app-web-client</module>
     </modules>
 
     <properties>
