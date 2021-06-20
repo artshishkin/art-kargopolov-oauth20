@@ -1,2 +1,24 @@
 server:
   port: 8050
+
+logging:
+  level:
+    net.shyshkin: debug
+
+app.redirect.host.uri: http://localhost:${server.port}
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          photo-app-web-client:
+            clientId: photo-app-webclient
+            clientSecret: 74ef0a61-f3b5-427c-a450-09a5d1b6f192
+            scope:
+              - openid
+              - profile
+              - roles
+            redirectUri: ${app.redirect.host.uri}/login/oauth2/code/photo-app-webclient
+            authorizationGrantType: authorization_code
+            redirectUri: ${app.redirect.host.uri}/login/oauth2/code/photo-app-web-client

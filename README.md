@@ -182,5 +182,19 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
 ```    
 -  Must return correct access token 
 
+####  Section 13: OAuth 2.0 in MVC Web App
+
+#####  102. Configuring OAuth2 Client properties
+
+1.  Register new client in Keycloak
+    -  Clients
+    -  Create -> `photo-app-webclient`
+    -  Save
+2.  Configure
+    -  Valid Redirect URIs: `http://localhost:8050/login/oauth2/code/photo-app-webclient`
+    -  Access Type: `confidential`
+    -  Save
+3.  Get clientSecret
+    -  Credentials -> Secret        
 
         
