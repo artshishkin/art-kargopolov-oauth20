@@ -191,7 +191,10 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
     -  Create -> `photo-app-webclient`
     -  Save
 2.  Configure
-    -  Valid Redirect URIs: `http://localhost:8050/login/oauth2/code/photo-app-webclient`
+    -  Valid Redirect URIs: 
+        -  `http://localhost:8050/login/oauth2/code/photo-app-webclient`
+        -  `http://localhost:8080/login/oauth2/code/photo-app-webclient` - for testing purposes
+        -  `http://photo-app-webclient:8080/login/oauth2/code/photo-app-webclient` - for running in docker compose (swarm)
     -  Access Type: `confidential`
     -  Save
 3.  Get clientSecret
