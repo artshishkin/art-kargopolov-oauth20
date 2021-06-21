@@ -9,7 +9,7 @@ app.redirect.host.uri: http://localhost:${server.port}
 
 app.oauth.uri: http://keycloak:8080
 app.oauth.baseUri: ${app.oauth.uri}/auth/realms/katarinazart/protocol/openid-connect
-app.gateway.uri: http://gateway:8080
+app.gateway.uri: http://gateway-service:8080
 
 spring:
   security:

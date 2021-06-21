@@ -80,6 +80,40 @@ class PhotoAppWebClientApplicationIT {
             .dependsOn(postgreSQL)
             .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
 
+    @Container
+    static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
+            .withCapabilities(new FirefoxOptions())
+            .withNetwork(network)
+            .withNetworkAliases("browser")
+            .dependsOn(keycloak);
+
+    @Container
+    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/oauth20-discovery-service")
+            .withNetwork(network)
+            .withNetworkAliases("discovery-service")
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHealthcheck());
+
+    @Container
+    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/oauth20-albums-service")
+            .withNetwork(network)
+            .withNetworkAliases("albums-service")
+            .withExposedPorts(8080)
+            .withEnv("eureka.client.enabled", "true")
+            .dependsOn(keycloak, discoveryService)
+            .waitingFor(Wait.forHealthcheck());
+
+    @Container
+    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/oauth20-api-gateway")
+            .withNetwork(network)
+            .withNetworkAliases("gateway-service")
+            .withExposedPorts(8080)
+            .withEnv("eureka.client.enabled", "true")
+            .withEnv("spring.profiles.active", "local")
+            .withEnv("discovery.service.uri", "http://discovery-service:8080")
+            .withEnv("eureka.client.registry-fetch-interval-seconds", "1")
+            .dependsOn(discoveryService, albumsService)
+            .waitingFor(Wait.forHealthcheck());
 
     @Container
     static GenericContainer<?> photoAppWebClient = new GenericContainer<>("artarkatesoft/oauth20-photo-app-web-client")
@@ -90,17 +124,9 @@ class PhotoAppWebClientApplicationIT {
                     "app.redirect.host.uri", "http://photo-app-webclient:8080"
             ))
             .withExposedPorts(8080)
-            .dependsOn(keycloak)
+            .dependsOn(keycloak, gatewayService)
             .withLogConsumer(new Slf4jLogConsumer(log))
             .waitingFor(Wait.forLogMessage(".*Completed initialization in.*\\n", 1));
-
-    @Container
-    static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
-            .withCapabilities(new FirefoxOptions())
-            .withNetwork(network)
-            .withNetworkAliases("browser")
-            .dependsOn(keycloak);
-
 
     RemoteWebDriver driver;
 
@@ -138,7 +164,8 @@ class PhotoAppWebClientApplicationIT {
                     assertThat(driver.findElementByTagName("h1").getText()).isEqualTo("Albums page");
 
                     assertThat(driver.getPageSource())
-                            .contains("WebAlbumTitle1");
+                            .contains("AlbumTitle1")
+                            .doesNotContain("WebAlbumTitle1");
                 });
 
     }
