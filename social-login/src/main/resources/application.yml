@@ -1,0 +1,46 @@
+server:
+  port: 8051
+
+logging:
+  level:
+    net.shyshkin: debug
+
+---
+spring:
+  config:
+    activate:
+      on-profile: facebook
+  security:
+    oauth2:
+      client:
+        registration:
+          facebook:
+            clientId: some_val
+            clientSecret: some_val
+
+---
+spring:
+  config:
+    activate:
+      on-profile: google
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: some_val
+            clientSecret: some_val
+
+---
+spring:
+  config:
+    activate:
+      on-profile: github
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            clientId: some_val
+            clientSecret: some_val
+
