@@ -194,6 +194,7 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
     -  Valid Redirect URIs: 
         -  `http://localhost:8050/login/oauth2/code/photo-app-webclient`
         -  `http://localhost:8080/login/oauth2/code/photo-app-webclient` - for testing purposes
+        -  `http://host.testcontainers.internal:8050/login/oauth2/code/photo-app-webclient` - for testing purposes
         -  `http://photo-app-webclient:8080/login/oauth2/code/photo-app-webclient` - for running in docker compose (swarm)
     -  Access Type: `confidential`
     -  Save
