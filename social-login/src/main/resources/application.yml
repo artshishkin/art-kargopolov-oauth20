@@ -28,8 +28,8 @@ spring:
       client:
         registration:
           google:
-            clientId: some_val
-            clientSecret: some_val
+            clientId: 57502764787-df6bk8i3vlsdmikgvq84tf981refqtif.apps.googleusercontent.com
+            clientSecret: ${GOOGLE_CLIENT_SECRET}
 
 ---
 spring:

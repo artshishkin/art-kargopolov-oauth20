@@ -216,4 +216,45 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
     -  Settings -> Basic
     -  App ID -> copy it `200469625293049`
     -  App Secret -> copy it 
-        -  Create Environment Variable `FACEBOOK_CLIENT_SECRET` and paste it        
+        -  Create Environment Variable `FACEBOOK_CLIENT_SECRET` and paste it
+
+#####  123. Google Client Id and Client Secret
+
+1.  Create Google App
+    -  Visit [console.developers.google.com](https://console.developers.google.com)
+    -  Create Project
+    -  Project Name: `SocialLoginExample`
+    -  Create
+2.  Configure Consent Screen
+    -  Credentials
+    -  Configure Consent Screen
+    -  External User Type -> Create    
+    -  App information:
+        -  App name: `SocialLoginExample`
+        -  User support email: my-email
+        -  Developer contact information: my-email
+        -  Save and Continue
+    -  Scopes:
+        -  Add or Remove Scopes:
+        -  `openid` -> Update
+        -  Save and Continue
+    -  Test users
+        -  `While publishing status is set to "Testing", only test users are able to access the app. Allowed user cap prior to app verification is 100, and is counted over the entire lifetime of the app.`
+        -  Add users -> add myself
+        -  Save and Continue
+    -  Summary
+        -  Back to Dashboard
+3.  Get Client ID
+    -  Credentials
+    -  Create credentials
+    -  OAuth Client ID
+        -  Application type: `Web application`
+        -  Name: `SocialLoginExample`
+        -  Authorized redirect URIs: `http://localhost:8051/login/oauth2/code/google`
+        -  Create
+        -  Copy Google Client Id: `57502764787-df6bk8i3vlsdmikgvq84tf981refqtif.apps.googleusercontent.com`
+        -  Copy Google Client Secret and create Environment variable: `GOOGLE_CLIENT_SECRET` 
+        
+
+
+                
