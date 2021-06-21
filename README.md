@@ -201,4 +201,19 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
 3.  Get clientSecret
     -  Credentials -> Secret        
 
-        
+####  Section 14: OAuth 2 - Social Login
+
+#####  121. Facebook: Client Id and Client Secret
+
+1.  Create Facebook App
+    -  Visit [developers.facebook.com](https://developers.facebook.com)
+    -  Begin (register as developer with your Facebook account)
+    -  (Facebook asked me to add new email - `d.art.shishkin@ukr.net`)
+    -  Create App -> Other (For Everything Else)
+    -  App Display Name: `SocialLoginExample`
+    -  Create App ID
+2.  Get Client ID
+    -  Settings -> Basic
+    -  App ID -> copy it `200469625293049`
+    -  App Secret -> copy it 
+        -  Create Environment Variable `FACEBOOK_CLIENT_SECRET` and paste it        
