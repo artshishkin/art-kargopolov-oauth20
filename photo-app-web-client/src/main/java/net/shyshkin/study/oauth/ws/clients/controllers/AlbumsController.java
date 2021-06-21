@@ -3,6 +3,7 @@ package net.shyshkin.study.oauth.ws.clients.controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.clients.services.AlbumsService;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
@@ -19,7 +20,8 @@ public class AlbumsController {
     @GetMapping("/albums")
     public String getAllAlbums(
             Model model,
-            @AuthenticationPrincipal OidcUser principal) {
+            @AuthenticationPrincipal OidcUser principal,
+            Authentication authentication) {
 
         log.debug("OpenId Connect User principal: {}", principal);
 
@@ -30,6 +32,8 @@ public class AlbumsController {
                 "albums",
                 albumsService.getAllAlbums()
         );
+
+        log.debug("Authentication: {}", authentication);
 
         return "albums";
     }
