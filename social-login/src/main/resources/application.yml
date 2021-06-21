@@ -35,6 +35,27 @@ spring:
 spring:
   config:
     activate:
+      on-profile: okta
+  security:
+    oauth2:
+      client:
+        registration:
+          okta:
+            clientId: 0oa11x7wuyEyJtNjY5d7
+            clientSecret: ${OKTA_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+        provider:
+          okta:
+            issuerUri: https://dev-83879807.okta.com/oauth2/default
+            # Okta Console -> Applications -> SocialLoginExample -> Sign On -> OpenID Connect ID Token -> Issuer
+            # + /oauth2/default
+
+---
+spring:
+  config:
+    activate:
       on-profile: github
   security:
     oauth2:
