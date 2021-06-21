@@ -255,6 +255,24 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
         -  Copy Google Client Id: `57502764787-df6bk8i3vlsdmikgvq84tf981refqtif.apps.googleusercontent.com`
         -  Copy Google Client Secret and create Environment variable: `GOOGLE_CLIENT_SECRET` 
         
+#####  125. Register a new Okta app
+
+1.  Create Okta App
+    -  Visit [developer.okta.com](https://developer.okta.com)
+    -  Create Account (I have no Okta account)
+    -  Applications -> Create App Integration
+        -  Sign-on method: `OpenID Connect`
+        -  Application type: `Web Application`
+        -  Next
+    -  New Web App Integration
+        -  App integration name : `SocialLoginExample`
+        -  Sign-in redirect URIs: `http://localhost:8051/login/oauth2/code/okta`
+        -  Save
+2.  Get Client ID
+    -  Client ID : `0oa11x7wuyEyJtNjY5d7`
+    -  Client secret : copy and create Environment variable `OKTA_CLIENT_SECRET`
+
+
 
 
                 
