@@ -25,7 +25,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -152,18 +155,32 @@ class PhotoAppWebClientApplicationIT {
         //then
         signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
 
+        AtomicReference<String> lastUrl = new AtomicReference<>("");
+        AtomicReference<String> lastPageContent = new AtomicReference<>("");
+
+        AtomicLong start = new AtomicLong(System.currentTimeMillis());
+
         await()
-                .timeout(3, TimeUnit.SECONDS)
+                .timeout(5, TimeUnit.SECONDS)
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
 
-                    log.debug("Current URL: {}", driver.getCurrentUrl());
-                    log.debug("Page: \n{}", driver.getPageSource());
+                    String currentUrl = driver.getCurrentUrl();
+                    String pageSource = driver.getPageSource();
 
+                    if (Objects.equals(currentUrl, lastUrl.get()) && Objects.equals(pageSource, lastPageContent.get())) {
+                        log.debug("Waiting for log in completion... {} ms", System.currentTimeMillis() - start.get());
+                    } else {
+                        start.set(System.currentTimeMillis());
+                        log.debug("Current URL: {}", currentUrl);
+                        log.debug("Page: \n{}", pageSource);
+                        lastUrl.set(currentUrl);
+                        lastPageContent.set(pageSource);
+                    }
                     assertThat(driver.getTitle()).isEqualTo("Albums Page");
                     assertThat(driver.findElementByTagName("h1").getText()).isEqualTo("Albums page");
 
-                    assertThat(driver.getPageSource())
+                    assertThat(pageSource)
                             .contains("AlbumTitle1")
                             .doesNotContain("WebAlbumTitle1");
                 });
