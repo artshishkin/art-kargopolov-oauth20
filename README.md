@@ -297,4 +297,24 @@ To view if provider supports OpenID Connect End Session Endpoint visit
     -  add `http://localhost:8051/login/oauth2/code/photo-app-webclient`
     -  add `http://localhost:8051` - for post_logout_redirect_uri
 
+####  Section 15: OAuth2 + PKCE in JavaScript Application
+
+#####  135. Creating a new Public client in Keycloak
+
+1.  Start Keycloak server
+2.  Log in into management console as admin
+3.  Create client
+    -  Clients -> Create
+    -  Client ID: `photo-app-pkce-client`
+    -  Save
+4.  Configure client
+    -  Access Type: `public`
+    -  Standard Flow Enabled: true
+    -  Direct Access Grant: FALSE
+    -  Valid Redirect URIs: `http://localhost:8181/authcodeReader.html`
+    -  Web Origins: `+` (permit all origins of Valid Redirect URIs)
+    -  Advanced Settings: 
+        -  Proof Key for Code Exchange Code Challenge Method: `S256`
+    -  Save      
+
                 
