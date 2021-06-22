@@ -38,6 +38,20 @@
             return base64urlEncoded;
         }
 
+        async function generateCodeChallenge() {
+            let codeChallengeValue = "";
+
+            let codeVerifier = document.getElementById("codeVerifierValue").innerHTML;
+
+            let textEncoder = new TextEncoder('US-ASCII');
+            let encodedValue = textEncoder.encode(codeVerifier);
+            let digest = await window.crypto.subtle.digest("SHA-256", encodedValue);
+
+            codeChallengeValue = base64urlencode(Array.from(new Uint8Array(digest)));
+
+            document.getElementById("codeChallengeValue").innerHTML = codeChallengeValue;
+        }
+
     </script>
 
 </head>
@@ -49,6 +63,9 @@
 
 <div id="codeVerifierValue">Code Verifier Value</div>
 <div><button onclick="generateCodeVerifier()">Generate Code Verifier Value</button></div>
+
+<div id="codeChallengeValue">Code Challenge Value</div>
+<div><button onclick="generateCodeChallenge()">Generate Code Challenge Value</button></div>
 
 </body>
 </html>
