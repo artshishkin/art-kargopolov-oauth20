@@ -18,6 +18,26 @@
             for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
             return result;
         }
+
+        function generateCodeVerifier() {
+            let returnValue = "";
+            let randomByteArray = new Uint8Array(32);
+            window.crypto.getRandomValues(randomByteArray);
+
+            returnValue = base64urlencode(randomByteArray);
+            document
+                .getElementById("codeVerifierValue")
+                .innerText = returnValue;
+
+        }
+
+        function base64urlencode(sourceValue) {
+            let stringValue = String.fromCharCode.apply(null, sourceValue);
+            let base64Encoded = btoa(stringValue);
+            let base64urlEncoded = base64Encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            return base64urlEncoded;
+        }
+
     </script>
 
 </head>
@@ -25,6 +45,10 @@
 <h1>Index Page</h1>
 
 <div id="stateValue">Some Value</div>
-<button onclick="generateState(30)">Generate Random State Value</button>
+<div><button onclick="generateState(30)">Generate Random State Value</button></div>
+
+<div id="codeVerifierValue">Code Verifier Value</div>
+<div><button onclick="generateCodeVerifier()">Generate Code Verifier Value</button></div>
+
 </body>
 </html>
