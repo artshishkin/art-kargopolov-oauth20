@@ -317,4 +317,8 @@ To view if provider supports OpenID Connect End Session Endpoint visit
         -  Proof Key for Code Exchange Code Challenge Method: `S256`
     -  Save      
 
+##### 138. Import jQuery  
+
+Google for `Google Hosted Libraries` and find jQuery 
+
                 
