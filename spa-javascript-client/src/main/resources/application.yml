@@ -1,0 +1,8 @@
+server:
+  port: 8181
+
+logging:
+  level:
+    net.shyshkin: debug
+
+app.redirect.host.uri: http://localhost:${server.port}
