@@ -284,4 +284,10 @@ To view if provider supports OpenID Connect End Session Endpoint visit
 -  [Google](https://accounts.google.com/.well-known/openid-configuration)
     -  has no "end_session_endpoint"
 
+#####  133.1 Trying how Logout from Okta works
+
+-  Configure **Sign-out redirect URIs** in Okta console
+    -  http://localhost:8080 // standard (I do not need it but just left)
+    -  http://localhost:8051 // application port
+    -  http://social-login-example:8080 // for future use in docker compose
                 
