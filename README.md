@@ -272,7 +272,16 @@ curl --location --request POST 'http://localhost:8080/auth/realms/katarinazart/p
     -  Client ID : `0oa11x7wuyEyJtNjY5d7`
     -  Client secret : copy and create Environment variable `OKTA_CLIENT_SECRET`
 
+#####  131. OpenID Connect End Session Endpoint
 
-
+To view if provider supports OpenID Connect End Session Endpoint visit
+-  `https://{base-server-url}/.well-known/openid-configuration`
+-  [Okta my dev account example](https://dev-83879807.okta.com/.well-known/openid-configuration)
+    -  receive JSON with available endpoints
+    -  "end_session_endpoint": "https://dev-83879807.okta.com/oauth2/v1/logout"
+-  [Keycloak on localhost example](http://localhost:8080/auth/realms/katarinazart/.well-known/openid-configuration)    
+    -  "end_session_endpoint": "http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/logout"
+-  [Google](https://accounts.google.com/.well-known/openid-configuration)
+    -  has no "end_session_endpoint"
 
                 
