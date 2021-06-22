@@ -51,6 +51,37 @@ spring:
             issuerUri: https://dev-83879807.okta.com/oauth2/default
             # Okta Console -> Applications -> SocialLoginExample -> Sign On -> OpenID Connect ID Token -> Issuer
             # + /oauth2/default
+---
+spring:
+  config:
+    activate:
+      on-profile: keycloak
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          photo-app-webclient:
+#            clientId: photo-app-webclient
+#            clientSecret: 74ef0a61-f3b5-427c-a450-09a5d1b6f192
+#            scope:
+#              - openid
+#              - profile
+#              - roles
+#            redirectUri: ${app.redirect.host.uri}/login/oauth2/code/photo-app-webclient
+#            authorizationGrantType: authorization_code
+#        provider:
+#          photo-app-webclient:
+#            authorizationUri: ${app.oauth.baseUri}/auth
+#            tokenUri: ${app.oauth.baseUri}/token
+#            jwkSetUri: ${app.oauth.baseUri}/certs
+#            userInfoUri: ${app.oauth.baseUri}/userinfo
+#            userNameAttribute: preferred_username
+#
+#
+#app.redirect.host.uri: http://localhost:${server.port}
+#
+#app.oauth.uri: http://localhost:8080
+#app.oauth.baseUri: ${app.oauth.uri}/auth/realms/katarinazart/protocol/openid-connect
 
 ---
 spring:

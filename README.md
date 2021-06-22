@@ -290,4 +290,11 @@ To view if provider supports OpenID Connect End Session Endpoint visit
     -  http://localhost:8080 // standard (I do not need it but just left)
     -  http://localhost:8051 // application port
     -  http://social-login-example:8080 // for future use in docker compose
+
+#####  133.2 Trying how Logout from Keycloak works
+
+-  Valid Redirect URIs: 
+    -  add `http://localhost:8051/login/oauth2/code/photo-app-webclient`
+    -  add `http://localhost:8051` - for post_logout_redirect_uri
+
                 
