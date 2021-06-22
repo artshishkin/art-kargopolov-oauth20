@@ -5,6 +5,8 @@ logging:
   level:
     net.shyshkin: debug
 
+app.redirect.host.uri: http://localhost:${server.port}
+
 ---
 spring:
   config:
@@ -56,32 +58,24 @@ spring:
   config:
     activate:
       on-profile: keycloak
-#  security:
-#    oauth2:
-#      client:
-#        registration:
-#          photo-app-webclient:
-#            clientId: photo-app-webclient
-#            clientSecret: 74ef0a61-f3b5-427c-a450-09a5d1b6f192
-#            scope:
-#              - openid
-#              - profile
-#              - roles
-#            redirectUri: ${app.redirect.host.uri}/login/oauth2/code/photo-app-webclient
-#            authorizationGrantType: authorization_code
-#        provider:
-#          photo-app-webclient:
-#            authorizationUri: ${app.oauth.baseUri}/auth
-#            tokenUri: ${app.oauth.baseUri}/token
-#            jwkSetUri: ${app.oauth.baseUri}/certs
-#            userInfoUri: ${app.oauth.baseUri}/userinfo
-#            userNameAttribute: preferred_username
-#
-#
-#app.redirect.host.uri: http://localhost:${server.port}
-#
-#app.oauth.uri: http://localhost:8080
-#app.oauth.baseUri: ${app.oauth.uri}/auth/realms/katarinazart/protocol/openid-connect
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            clientId: photo-app-webclient
+            clientSecret: 74ef0a61-f3b5-427c-a450-09a5d1b6f192
+            scope:
+              - openid
+              - profile
+              - roles
+            redirectUri: ${app.redirect.host.uri}/login/oauth2/code/photo-app-webclient
+            authorizationGrantType: authorization_code
+        provider:
+          keycloak:
+            issuerUri: ${app.oauth.uri}/auth/realms/katarinazart
+
+app.oauth.uri: http://localhost:8080
 
 ---
 spring:

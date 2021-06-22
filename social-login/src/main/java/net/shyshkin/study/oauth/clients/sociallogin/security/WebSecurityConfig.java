@@ -1,7 +1,7 @@
 package net.shyshkin.study.oauth.clients.sociallogin.security;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -10,10 +10,18 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 
 @Slf4j
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final String postLogoutRedirectUri;
+
+    public WebSecurityConfig(
+            ClientRegistrationRepository clientRegistrationRepository,
+            @Value("${app.redirect.host.uri:http://localhost:8080}") String appRedirectHostUri) {
+
+        this.clientRegistrationRepository = clientRegistrationRepository;
+        this.postLogoutRedirectUri = appRedirectHostUri;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -33,7 +41,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
         var handler = new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        handler.setPostLogoutRedirectUri("http://localhost:8051");
+        handler.setPostLogoutRedirectUri(postLogoutRedirectUri);
         return handler;
     }
 }
