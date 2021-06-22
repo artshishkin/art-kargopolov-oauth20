@@ -4,9 +4,27 @@
     <meta charset="UTF-8">
     <title>Javascript Application with PKCE</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script>
+
+        function generateState(length) {
+            document
+                .getElementById("stateValue")
+                .innerText = randomString(length, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+        }
+
+        function randomString(length, chars) {
+            let result = '';
+            for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+            return result;
+        }
+    </script>
+
 </head>
 <body>
 <h1>Index Page</h1>
 
+<div id="stateValue">Some Value</div>
+<button onclick="generateState(30)">Generate Random State Value</button>
 </body>
 </html>
