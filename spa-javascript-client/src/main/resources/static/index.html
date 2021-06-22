@@ -68,6 +68,10 @@
             window.open(authorizationURL, 'authorizationRequestWindow', 'width=800,height=600,left=200,top=200');
         }
 
+        function postAuthorize(state, authCode) {
+            alert("State = " + state + ", authCode = " + authCode);
+        }
+
     </script>
 
 </head>
@@ -75,15 +79,23 @@
 <h1>Index Page</h1>
 
 <div id="stateValue">Some Value</div>
-<div><button onclick="generateState(30)">Generate Random State Value</button></div>
+<div>
+    <button onclick="generateState(30)">Generate Random State Value</button>
+</div>
 
 <div id="codeVerifierValue">Code Verifier Value</div>
-<div><button onclick="generateCodeVerifier()">Generate Code Verifier Value</button></div>
+<div>
+    <button onclick="generateCodeVerifier()">Generate Code Verifier Value</button>
+</div>
 
 <div id="codeChallengeValue">Code Challenge Value</div>
-<div><button onclick="generateCodeChallenge()">Generate Code Challenge Value</button></div>
+<div>
+    <button onclick="generateCodeChallenge()">Generate Code Challenge Value</button>
+</div>
 
-<div><button onclick="getAuthCode()">Get Auth Code</button></div>
+<div>
+    <button onclick="getAuthCode()">Get Auth Code</button>
+</div>
 
 </body>
 </html>
