@@ -59,7 +59,7 @@
             let authorizationURL = "http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth";
             authorizationURL += "?client_id=photo-app-pkce-client";
             authorizationURL += "&response_type=code";
-            authorizationURL += "&scope=openid";
+            authorizationURL += "&scope=openid profile";
             authorizationURL += "&redirect_uri=http://localhost:8181/authcodeReader.html";
             authorizationURL += "&state=" + state;
             authorizationURL += "&code_challenge=" + codeChallenge;
@@ -104,7 +104,7 @@
             document.getElementById("accessToken").innerHTML = data["access_token"];
         }
 
-        function getInfoFromResourceServer(resourceServerPort) {
+        function getInfoFromResourceServer(resourceServerPort, endpoint = "/users/status/check") {
 
             const accessToken = document.getElementById("accessToken").innerHTML;
 
@@ -116,7 +116,7 @@
                     request.setRequestHeader("Authorization", "Bearer " + accessToken);
                 },
                 type: "GET",
-                url: "http://localhost:" + resourceServerPort + "/users/status/check",
+                url: "http://localhost:" + resourceServerPort + endpoint,
                 success: postInfoFromAccessToken,
                 dataType: "text"
             });
@@ -166,6 +166,14 @@
     <input type="number" id="resourceServerPort" min="0" max="99999" value="8090">
     <button onclick="getInfoFromResourceServer(getResourceServerPort())">Get Info From Resource Server `users`
         directly
+    </button>
+
+    <button onclick="getInfoFromResourceServer(getResourceServerPort(),'/users/scope/status/check')">Get Info From Resource
+        Server `users` directly with SCOPE
+    </button>
+
+    <button onclick="getInfoFromResourceServer(getResourceServerPort(),'/users/role/developer/status/check')">Get Info From Resource
+        Server `users` directly with DEVELOPER ROLE
     </button>
 </div>
 
