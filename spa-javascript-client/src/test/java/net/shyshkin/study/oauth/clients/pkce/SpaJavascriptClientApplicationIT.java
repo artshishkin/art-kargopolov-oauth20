@@ -6,6 +6,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -225,6 +226,23 @@ class SpaJavascriptClientApplicationIT {
                                 .isNotBlank()
                                 .hasSizeGreaterThan(20)
                 ));
+
+        //click on buttons `Get Info From Resource Server" directly` should show alert with "Working..." message
+        List<String> directResourceServerButtonsIds = List.of(
+                "getInfoFromResourceServerDirectBtn",
+                "getInfoFromResourceServerScopeBtn",
+                "getInfoFromResourceServerRoleBtn"
+        );
+
+        for (String buttonsId : directResourceServerButtonsIds) {
+            log.debug("Clicking on `{}`", buttonsId);
+            driver.findElementById(buttonsId).click();
+            Alert alert = driver.switchTo().alert();
+            assertThat(alert.getText()).isEqualTo("Working...");
+            alert.accept();
+        }
+
+
     }
 
     private void waitFor(String message, List<Executable> executableList) {
