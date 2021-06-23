@@ -1,11 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Javascript Application with PKCE</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script>
+
+        let redirectHostUri;
+        let oAuthServerUri;
+        let usersApiUri;
+        let gatewayUri;
+
+        $(document).ready(function() {   //same as: $(function() {
+            initUris();
+        });
+
+        function initUris() {
+            redirectHostUri = document.getElementById("redirectHostUri").innerHTML;
+            console.log("redirectHostUri = " + redirectHostUri);
+            oAuthServerUri = document.getElementById("oAuthServerUri").innerHTML;
+            usersApiUri = document.getElementById("usersApiUri").innerHTML;
+            gatewayUri = document.getElementById("gatewayUri").innerHTML;
+
+            document.getElementById("resourceServerUri").value = usersApiUri;
+        }
 
         function generateState(length) {
             document
@@ -56,11 +77,11 @@
             let state = document.getElementById("stateValue").innerHTML;
             let codeChallenge = document.getElementById("codeChallengeValue").innerHTML;
 
-            let authorizationURL = "http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth";
+            let authorizationURL = oAuthServerUri + "/auth/realms/katarinazart/protocol/openid-connect/auth";
             authorizationURL += "?client_id=photo-app-pkce-client";
             authorizationURL += "&response_type=code";
             authorizationURL += "&scope=openid profile";
-            authorizationURL += "&redirect_uri=http://localhost:8181/authcodeReader.html";
+            authorizationURL += "&redirect_uri=" + redirectHostUri + "/authcodeReader.html";
             authorizationURL += "&state=" + state;
             authorizationURL += "&code_challenge=" + codeChallenge;
             authorizationURL += "&code_challenge_method=S256";
@@ -85,7 +106,7 @@
                 "client_id": "photo-app-pkce-client",
                 "code": authCode,
                 "code_verifier": codeVerifier,
-                "redirect_uri": "http://localhost:8181/authcodeReader.html"
+                "redirect_uri": redirectHostUri + "/authcodeReader.html"
             };
 
             $.ajax({
@@ -93,7 +114,7 @@
                     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
                 },
                 type: "POST",
-                url: "http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token",
+                url: oAuthServerUri + "/auth/realms/katarinazart/protocol/openid-connect/token",
                 data: data,
                 success: postRequestAccessToken,
                 dataType: "json"
@@ -104,11 +125,11 @@
             document.getElementById("accessToken").innerHTML = data["access_token"];
         }
 
-        function getInfoFromResourceServer(resourceServerPort, endpoint = "/users/status/check") {
+        function getInfoFromResourceServer(resourceServerUri, endpoint = "/users/status/check") {
 
             const accessToken = document.getElementById("accessToken").innerHTML;
 
-            console.log("Resource Server Port: " + resourceServerPort);
+            console.log("Resource Server Uri: " + resourceServerUri);
 
             $.ajax({
                 beforeSend: function (request) {
@@ -116,7 +137,7 @@
                     request.setRequestHeader("Authorization", "Bearer " + accessToken);
                 },
                 type: "GET",
-                url: "http://localhost:" + resourceServerPort + endpoint,
+                url: resourceServerUri + endpoint,
                 success: postInfoFromAccessToken,
                 dataType: "text"
             });
@@ -126,8 +147,8 @@
             alert(data);
         }
 
-        function getResourceServerPort() {
-            return document.getElementById("resourceServerPort").value;
+        function getResourceServerUri() {
+            return document.getElementById("resourceServerUri").value;
         }
 
     </script>
@@ -135,7 +156,24 @@
 </head>
 <body>
 <h1>Index Page</h1>
-
+<div>
+    <p>
+        <span>Valid Redirect URI:</span>
+        <span id="redirectHostUri" th:text="${@environment.getProperty('app.redirect.host.uri')}"></span>
+    </p>
+    <p>
+        <span>OAuth Server URI:</span>
+        <span id="oAuthServerUri" th:text="${@environment.getProperty('app.oauth.uri')}"></span>
+    </p>
+    <p>
+        <span>Users API URI:</span>
+        <span id="usersApiUri" th:text="${@environment.getProperty('app.users-api.uri')}"></span>
+    </p>
+    <p>
+        <span>Gateway URI:</span>
+        <span id="gatewayUri" th:text="${@environment.getProperty('app.gateway.uri')}"></span>
+    </p>
+</div>
 <div id="stateValue">Some Value</div>
 <div>
     <button onclick="generateState(30)">Generate Random State Value</button>
@@ -158,21 +196,24 @@
 <p>Access Token: <span id="accessToken"></span></p>
 
 <div>
-    <button onclick="getInfoFromResourceServer(8090)">Get Info From Resource Server `users` through Gateway</button>
+    <button onclick="getInfoFromResourceServer(gatewayUri)">Get Info From Resource Server `users` through Gateway
+    </button>
 </div>
 
 <div>
-    <label for="resourceServerPort">Resource Server Port</label>
-    <input type="number" id="resourceServerPort" min="0" max="99999" value="8090">
-    <button onclick="getInfoFromResourceServer(getResourceServerPort())">Get Info From Resource Server `users`
+    <label for="resourceServerUri">Resource Server Uri</label>
+    <input type="text" id="resourceServerUri" value="http://localhost:7777">
+    <button onclick="getInfoFromResourceServer(getResourceServerUri())">Get Info From Resource Server `users`
         directly
     </button>
 
-    <button onclick="getInfoFromResourceServer(getResourceServerPort(),'/users/scope/status/check')">Get Info From Resource
+    <button onclick="getInfoFromResourceServer(getResourceServerUri(),'/users/scope/status/check')">Get Info From
+        Resource
         Server `users` directly with SCOPE
     </button>
 
-    <button onclick="getInfoFromResourceServer(getResourceServerPort(),'/users/role/developer/status/check')">Get Info From Resource
+    <button onclick="getInfoFromResourceServer(getResourceServerUri(),'/users/role/developer/status/check')">Get Info
+        From Resource
         Server `users` directly with DEVELOPER ROLE
     </button>
 </div>

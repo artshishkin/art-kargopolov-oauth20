@@ -6,3 +6,6 @@ logging:
     net.shyshkin: debug
 
 app.redirect.host.uri: http://localhost:${server.port}
+app.oauth.uri: http://localhost:8080
+app.gateway.uri: http://localhost:8090
+app.users-api.uri: http://localhost:8666
