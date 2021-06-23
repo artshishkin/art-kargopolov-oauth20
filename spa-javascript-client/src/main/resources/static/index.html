@@ -69,7 +69,13 @@
         }
 
         function postAuthorize(state, authCode) {
-            alert("State = " + state + ", authCode = " + authCode);
+
+            let originalStateValue = document.getElementById("stateValue").innerHTML;
+            if (originalStateValue === state) {
+
+            } else {
+                alert("Invalid State value received");
+            }
         }
 
     </script>
