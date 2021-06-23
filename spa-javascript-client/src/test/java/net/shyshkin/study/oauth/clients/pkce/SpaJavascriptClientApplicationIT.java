@@ -24,9 +24,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -179,6 +177,53 @@ class SpaJavascriptClientApplicationIT {
                 List.of(
                         () -> driver.findElementById("generateCodeChallengeBtn").click(),
                         () -> assertThat(driver.findElementById("codeChallengeValue").getText()).isNotEqualTo("Code Challenge Value")
+                ));
+
+        String indexWindowHandle = driver.getWindowHandle();
+        log.debug("Index Window Handler: {}", indexWindowHandle);
+
+        //click on button `Get Auth Code` should pop up new window for signing into keycloak
+        driver.findElementById("getAuthCodeBtn").click();
+
+        Set<String> windowHandles = driver.getWindowHandles();
+        assertThat(windowHandles).hasSize(2);
+
+        Optional<String> authPageOptional = windowHandles
+                .stream()
+                .filter(windowHandle -> !Objects.equals(windowHandle, indexWindowHandle))
+                .findAny();
+        assertThat(authPageOptional.isPresent()).isTrue();
+
+        String authPageWindowHandle = authPageOptional.get();
+        driver.switchTo().window(authPageWindowHandle);
+
+        waitFor("new Window appear",
+                List.of(
+                        () -> assertThat(driver.getTitle()).isEqualTo("Sign in to katarinazart")
+                ));
+
+
+        //correct signing in should redirect to index page with Access Token Generated
+        signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
+
+        await()
+                .timeout(10, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    log.debug("Window Handles:");
+                    driver.getWindowHandles()
+                            .forEach(handle -> log.debug("{}", handle));
+                });
+
+        driver.switchTo().window(indexWindowHandle);
+
+        waitFor("log IN completion",
+                List.of(
+                        () -> assertThat(driver.getTitle()).isEqualTo("Javascript Application with PKCE"),
+
+                        () -> assertThat(driver.findElementById("accessToken").getText())
+                                .isNotBlank()
+                                .hasSizeGreaterThan(20)
                 ));
     }
 
