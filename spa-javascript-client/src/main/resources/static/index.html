@@ -104,6 +104,26 @@
             document.getElementById("accessToken").innerHTML = data["access_token"];
         }
 
+        function getInfoFromResourceServer(){
+
+            const accessToken = document.getElementById("accessToken").innerHTML;
+
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+                    request.setRequestHeader("Authorization", "Bearer " + accessToken);
+                },
+                type: "GET",
+                url: "http://localhost:8090/users/status/check",
+                success: postInfoFromAccessToken,
+                dataType: "text"
+            });
+        }
+
+        function postInfoFromAccessToken(data, status, jqXHR) {
+            alert(data);
+        }
+
     </script>
 
 </head>
@@ -130,6 +150,10 @@
 </div>
 
 <p>Access Token: <span id="accessToken"></span></p>
+
+<div>
+    <button onclick="getInfoFromResourceServer()">Get Info From Resource Server `users`</button>
+</div>
 
 </body>
 </html>
