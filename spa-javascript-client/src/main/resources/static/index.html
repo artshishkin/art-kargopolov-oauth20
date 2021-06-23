@@ -72,10 +72,36 @@
 
             let originalStateValue = document.getElementById("stateValue").innerHTML;
             if (originalStateValue === state) {
-
+                requestTokens(authCode);
             } else {
                 alert("Invalid State value received");
             }
+        }
+
+        function requestTokens(authCode) {
+            const codeVerifier = document.getElementById("codeVerifierValue").innerHTML;
+            const data = {
+                "grant_type": "authorization_code",
+                "client_id": "photo-app-pkce-client",
+                "code": authCode,
+                "code_verifier": codeVerifier,
+                "redirect_uri": "http://localhost:8181/authcodeReader.html"
+            };
+
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+                },
+                type: "POST",
+                url: "http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token",
+                data: data,
+                success: postRequestAccessToken,
+                dataType: "json"
+            });
+        }
+
+        function postRequestAccessToken(data, status, jqXHR) {
+            document.getElementById("accessToken").innerHTML = data["access_token"];
         }
 
     </script>
@@ -102,6 +128,8 @@
 <div>
     <button onclick="getAuthCode()">Get Auth Code</button>
 </div>
+
+<p>Access Token: <span id="accessToken"></span></p>
 
 </body>
 </html>
