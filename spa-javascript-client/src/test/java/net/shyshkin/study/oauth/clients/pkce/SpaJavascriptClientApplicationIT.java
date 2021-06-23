@@ -214,6 +214,7 @@ class SpaJavascriptClientApplicationIT {
                     log.debug("Window Handles:");
                     driver.getWindowHandles()
                             .forEach(handle -> log.debug("{}", handle));
+                    assertThat(driver.getWindowHandles()).hasSize(1);
                 });
 
         driver.switchTo().window(indexWindowHandle);
@@ -237,6 +238,35 @@ class SpaJavascriptClientApplicationIT {
         for (String buttonsId : directResourceServerButtonsIds) {
             log.debug("Clicking on `{}`", buttonsId);
             driver.findElementById(buttonsId).click();
+            Alert alert = driver.switchTo().alert();
+            assertThat(alert.getText()).isEqualTo("Working...");
+            alert.accept();
+        }
+
+        //click on buttons `Get Info From Resource Server `users` through Gateway` should show alert with "Working..." message
+        for (String buttonsId : List.of("getInfoFromResourceServerThroughGatewayBtn")) {
+            log.debug("Clicking on `{}`", buttonsId);
+            driver.findElementById(buttonsId).click();
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Alert alert = driver.switchTo().alert();
+            assertThat(alert.getText()).isEqualTo("Working...");
+            alert.accept();
+        }
+
+        //get Info From Resource Server through API Gateway should show alert with "Working..." message
+        String gatewayUri = driver.findElementById("gatewayUri").getText();
+        log.debug("Gateway Uri: {}", gatewayUri);
+        driver.findElementById("resourceServerUri").clear();
+        driver.findElementById("resourceServerUri").sendKeys(gatewayUri);
+
+        assertThat(driver.findElementById("resourceServerUri").getAttribute("value")).isEqualTo(gatewayUri);
+        for (String buttonsId : directResourceServerButtonsIds) {
+            log.debug("GATEWAY: Clicking on `{}`", buttonsId);
+            driver.findElementById("getInfoFromResourceServerDirectBtn").click();
             Alert alert = driver.switchTo().alert();
             assertThat(alert.getText()).isEqualTo("Working...");
             alert.accept();

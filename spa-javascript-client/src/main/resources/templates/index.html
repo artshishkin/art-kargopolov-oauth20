@@ -147,7 +147,14 @@
                 url: resourceServerUri + endpoint,
                 success: postInfoFromAccessToken,
                 dataType: "text"
-            });
+            })
+                .fail(function (jqXHR, exception, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(exception);
+                    console.log(errorThrown);
+                    alert("jqXHR: " + jqXHR + "; exception: " + exception);
+                })
+            ;
         }
 
         function postInfoFromAccessToken(data, status, jqXHR) {
@@ -228,6 +235,9 @@
         Server `users` directly with DEVELOPER ROLE
     </button>
 </div>
+<script>
+    initUris();
+</script>
 
 </body>
 </html>
