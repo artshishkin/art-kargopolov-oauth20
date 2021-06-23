@@ -29,6 +29,7 @@ spring:
             - Method=POST,PUT,GET,DELETE
           filters:
             - RemoveRequestHeader=Cookie
+            - DedupeResponseHeader=Access-Control-Allow-Origin
         - id: albumsApi
           uri: ${app.routes.uri.albums-api}/albums/**
           predicates:
