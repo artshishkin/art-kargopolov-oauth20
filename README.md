@@ -321,4 +321,9 @@ To view if provider supports OpenID Connect End Session Endpoint visit
 
 Google for `Google Hosted Libraries` and find jQuery 
 
-                
+##### 147. Finding Refresh Token and ID Token
+
+1.  In browser open Developers' Tools  (`Ctrl+Shift+I` in Chrome)
+2.  Network
+3.  Click `Get Auth Code` button
+4.  View Response Body JSON -> Preview           
