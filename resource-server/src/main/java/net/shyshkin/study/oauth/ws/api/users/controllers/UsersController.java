@@ -19,6 +19,7 @@ import java.net.UnknownHostException;
 @RestController
 @RequestMapping("users")
 @RequiredArgsConstructor
+@CrossOrigin
 public class UsersController {
 
     private final Environment environment;

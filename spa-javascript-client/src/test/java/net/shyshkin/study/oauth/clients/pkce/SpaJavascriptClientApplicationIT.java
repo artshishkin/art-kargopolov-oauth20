@@ -238,6 +238,15 @@ class SpaJavascriptClientApplicationIT {
             alert.accept();
         }
 
+        //click on buttons `Delete user by fake id` should show alert with "Deleted user with id: some_fake_id" message
+        for (String buttonsId : List.of("deleteRegularUserBtn")) {
+            log.debug("Clicking on `{}`", buttonsId);
+            driver.findElementById(buttonsId).click();
+            Alert alert = driver.switchTo().alert();
+            assertThat(alert.getText()).isEqualTo("Deleted user with id: some_fake_id");
+            alert.accept();
+        }
+
         //click on buttons `Get Info From Resource Server `users` through Gateway` should show alert with "Working..." message
         for (String buttonsId : List.of("getInfoFromResourceServerThroughGatewayBtn")) {
             log.debug("Clicking on `{}`", buttonsId);
@@ -264,6 +273,15 @@ class SpaJavascriptClientApplicationIT {
             driver.findElementById("getInfoFromResourceServerDirectBtn").click();
             Alert alert = driver.switchTo().alert();
             assertThat(alert.getText()).isEqualTo("Working...");
+            alert.accept();
+        }
+
+        //delete user through API Gateway should show alert with "Deleted user with id: some_fake_id" message
+        for (String buttonsId : List.of("deleteRegularUserBtn")) {
+            log.debug("GATEWAY: Clicking on `{}`", buttonsId);
+            driver.findElementById(buttonsId).click();
+            Alert alert = driver.switchTo().alert();
+            assertThat(alert.getText()).isEqualTo("Deleted user with id: some_fake_id");
             alert.accept();
         }
 

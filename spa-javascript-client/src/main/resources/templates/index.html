@@ -157,6 +157,29 @@
             ;
         }
 
+        function deleteRegularUser(resourceServerUri, endpoint = "/users/regular/some_fake_id") {
+
+            const accessToken = document.getElementById("accessToken").innerHTML;
+
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+                    request.setRequestHeader("Authorization", "Bearer " + accessToken);
+                },
+                type: "DELETE",
+                url: resourceServerUri + endpoint,
+                success: postInfoFromAccessToken,
+                dataType: "text"
+            })
+                .fail(function (jqXHR, exception, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(exception);
+                    console.log(errorThrown);
+                    alert("jqXHR: " + jqXHR + "; exception: " + exception);
+                })
+            ;
+        }
+
         function postInfoFromAccessToken(data, status, jqXHR) {
             alert(data);
         }
@@ -233,6 +256,10 @@
             onclick="getInfoFromResourceServer(getResourceServerUri(),'/users/role/developer/status/check')">Get Info
         From Resource
         Server `users` directly with DEVELOPER ROLE
+    </button>
+
+    <button id="deleteRegularUserBtn" onclick="deleteRegularUser(getResourceServerUri())">
+        Delete user by fake id
     </button>
 </div>
 <script>
