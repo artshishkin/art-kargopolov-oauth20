@@ -1,6 +1,7 @@
 package net.shyshkin.study.oauth.clients.sociallogin;
 
 import lombok.extern.slf4j.Slf4j;
+import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -52,41 +52,12 @@ class SocialLoginApplicationIT {
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
     public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
 
-    static Network network = Network.newNetwork();
-
     @Container
-    static PostgreSQLContainer<?> postgreSQL = new PostgreSQLContainer<>("postgres")
-            .withDatabaseName("keycloak")
-            .withUsername("keycloak")
-            .withPassword("password")
-            .withNetwork(network)
-            .withNetworkAliases("postgres");
+    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
 
-    @Container
-    static GenericContainer<?> keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:latest")
-            .withNetwork(network)
-            .withNetworkAliases("keycloak")
-            .withEnv(Map.of(
-                    "DB_VENDOR", "POSTGRES",
-                    "DB_ADDR", "postgres",
-                    "DB_DATABASE", "keycloak",
-                    "DB_USER", "keycloak",
-                    "DB_SCHEMA", "public",
-                    "DB_PASSWORD", "password",
-                    "KEYCLOAK_USER", "admin",
-                    "KEYCLOAK_PASSWORD", "Pa55w0rd"
-            ))
-            .withCommand(
-                    "-b 0.0.0.0",
-                    "-Dkeycloak.migration.action=import",
-                    "-Dkeycloak.migration.provider=singleFile",
-                    "-Dkeycloak.migration.file=/tmp/export/realm-export.json",
-                    "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
-            )
-            .withFileSystemBind("C:\\Users\\Admin\\IdeaProjects\\Study\\SergeyKargopolov\\OAuth20\\art-kargopolov-oauth20\\docker-compose\\keycloak-postgres\\export\\realm-export.json", "/tmp/export/realm-export.json")
-            .withExposedPorts(8080)
-            .dependsOn(postgreSQL)
-            .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
+    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
+
+    static Network network = keycloakStackContainers.getStackNetwork();
 
     @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
