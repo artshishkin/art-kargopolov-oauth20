@@ -2,9 +2,7 @@ package net.shyshkin.study.oauth.clients.pkce;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.WebElement;
@@ -13,7 +11,6 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.BrowserWebDriverContainer;
@@ -41,9 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
         "logging.level.net.shyshkin=debug",
         "app.oauth.uri=http://${OAUTH_HOST}:${OAUTH_PORT}"
 })
-@ActiveProfiles("keycloak")
 @ContextConfiguration(initializers = SpaJavascriptClientApplicationIT.Initializer.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SpaJavascriptClientApplicationIT {
 
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
