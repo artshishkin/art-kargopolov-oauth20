@@ -26,6 +26,7 @@
         <module>social-login</module>
         <module>spa-javascript-client</module>
         <module>common</module>
+        <module>user-storage-provider</module>
     </modules>
 
     <properties>
@@ -36,6 +37,7 @@
         <awaitility.version>4.0.2</awaitility.version>
         <docker.image.prefix>artarkatesoft</docker.image.prefix>
         <docker.image.name>oauth20-${project.artifactId}</docker.image.name>
+        <keycloak-server-spi.version>14.0.0</keycloak-server-spi.version>
     </properties>
 
     <dependencies>
@@ -104,6 +106,11 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-server-spi</artifactId>
+                <version>${keycloak-server-spi.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
