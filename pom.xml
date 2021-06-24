@@ -25,6 +25,7 @@
         <module>photo-app-web-client</module>
         <module>social-login</module>
         <module>spa-javascript-client</module>
+        <module>common</module>
     </modules>
 
     <properties>
