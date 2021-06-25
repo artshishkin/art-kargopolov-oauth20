@@ -1,5 +1,6 @@
 package net.shyshkin.study.oauth.spi;
 
+import lombok.RequiredArgsConstructor;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputValidator;
@@ -9,16 +10,13 @@ import org.keycloak.models.UserModel;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.UserLookupProvider;
 
+@RequiredArgsConstructor
 public class RemoteUserStorageProvider implements UserStorageProvider,
         UserLookupProvider, CredentialInputValidator {
 
-    private KeycloakSession session;
-    private ComponentModel model;
-
-    public RemoteUserStorageProvider(KeycloakSession session, ComponentModel model) {
-        this.session = session;
-        this.model = model;
-    }
+    private final KeycloakSession session;
+    private final ComponentModel model;
+    private final UsersApiService usersService;
 
     @Override
     public void close() {
