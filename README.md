@@ -326,4 +326,28 @@ Google for `Google Hosted Libraries` and find jQuery
 1.  In browser open Developers' Tools  (`Ctrl+Shift+I` in Chrome)
 2.  Network
 3.  Click `Get Auth Code` button
-4.  View Response Body JSON -> Preview           
+4.  View Response Body JSON -> Preview
+
+####  Section 16: Keycloak Remote User Authentication. User Storage SPI.
+
+#####  166. Deploying User Storage SPI
+
+- Copy `my-remote-user-storage-provider` JAR to Keycloak
+    -  `keycloak/standalone/deployments/ `(Kargopolov solution)
+    -  `/opt/jboss/keycloak/standalone/deployments` (in case of docker)
+    -  `docker container cp .\my-remote-user-storage-provider.jar keycloak-postgres_keycloak_1:/opt/jboss/keycloak/standalone/deployments`
+    -  in docker container files will see files added and deployed
+    -  in container logs will see success deployment:
+```
+13:07:00,005 INFO  [org.jboss.as.repository] (DeploymentScanner-threads - 1) WFLYDR0001: Content added at location /opt/jboss/keycloak/standalone/data/content/d1/bb6440489e99524675b04f4cd3ddbff8f3f6f3/content
+13:07:00,024 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-2) WFLYSRV0027: Starting deployment of "my-remote-user-storage-provider.jar" (runtime-name: "my-remote-user-storage-provider.jar")
+13:07:00,271 INFO  [org.keycloak.subsystem.server.extension.KeycloakProviderDeploymentProcessor] (MSC service thread 1-5) Deploying Keycloak provider: my-remote-user-storage-provider.jar
+13:07:00,438 INFO  [org.jboss.as.server] (DeploymentScanner-threads - 1) WFLYSRV0010: Deployed "my-remote-user-storage-provider.jar" (runtime-name : "my-remote-user-storage-provider.jar")
+```
+-  Enable `my-remote-user-storage-provider`
+    -  Log in into Keycloak management console
+    -  User Federation
+    -  Add provider: `my-remote-user-storage-provider`
+    -  Priority: 0 (Lowest first)
+    -  Success message appears
+           
