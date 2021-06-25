@@ -8,7 +8,7 @@ import org.keycloak.storage.UserStorageProviderFactory;
 
 public class RemoteUserStorageProviderFactory implements UserStorageProviderFactory<RemoteUserStorageProvider> {
 
-    public static final String PROVIDER_NAME = "my-remote-mysql-user-storage-provider";
+    public static final String PROVIDER_NAME = "my-remote-user-storage-provider";
     public static final String LEGACY_SYSTEM_URI = "http://localhost:8099";
 
 

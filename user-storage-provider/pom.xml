@@ -41,7 +41,7 @@
     </dependencies>
 
     <build>
-        <finalName>my-remote-mysql-user-storage-provider</finalName>
+        <finalName>my-remote-user-storage-provider</finalName>
     </build>
 
 </project>
