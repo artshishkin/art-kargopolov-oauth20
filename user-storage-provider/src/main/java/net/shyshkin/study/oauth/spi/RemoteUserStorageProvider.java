@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputValidator;
+import org.keycloak.credential.UserCredentialStore;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.adapter.AbstractUserAdapter;
 import org.keycloak.storage.user.UserLookupProvider;
@@ -56,16 +58,31 @@ public class RemoteUserStorageProvider implements UserStorageProvider,
 
     @Override
     public boolean supportsCredentialType(String credentialType) {
-        return false;
+        return PasswordCredentialModel.TYPE.equals(credentialType);
     }
 
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
-        return false;
+
+        if (!supportsCredentialType(credentialType))
+            return false;
+
+        return getCredentialStore()
+                .getStoredCredentialsByTypeStream(realm, user, credentialType)
+                .findAny()
+                .isPresent();
+    }
+
+    private UserCredentialStore getCredentialStore() {
+        return session.userCredentialManager();
     }
 
     @Override
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput credentialInput) {
-        return false;
+
+        String userPassword = credentialInput.getChallengeResponse();
+        var verifyPasswordResponse = usersService.verifyUserPassword(user.getUsername(), userPassword);
+
+        return verifyPasswordResponse != null && verifyPasswordResponse.isResult();
     }
 }
