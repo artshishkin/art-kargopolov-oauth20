@@ -8,6 +8,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.storage.UserStorageProvider;
+import org.keycloak.storage.adapter.AbstractUserAdapter;
 import org.keycloak.storage.user.UserLookupProvider;
 
 @RequiredArgsConstructor
@@ -28,9 +29,24 @@ public class RemoteUserStorageProvider implements UserStorageProvider,
         return null;
     }
 
+    // We need to implement AT LEAST ONE of methods: getUserByUsername, getUserByEmail
     @Override
     public UserModel getUserByUsername(String username, RealmModel realm) {
+
+        User user = usersService.getUserDetails(username);
+        if (user != null) {
+            return createUserModel(username, realm);
+        }
         return null;
+    }
+
+    private UserModel createUserModel(String username, RealmModel realm) {
+        return new AbstractUserAdapter(session, realm, model) {
+            @Override
+            public String getUsername() {
+                return username;
+            }
+        };
     }
 
     @Override
