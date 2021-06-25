@@ -27,6 +27,7 @@
         <module>spa-javascript-client</module>
         <module>common</module>
         <module>user-storage-provider</module>
+        <module>user-legacy-service</module>
     </modules>
 
     <properties>
