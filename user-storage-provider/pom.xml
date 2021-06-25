@@ -13,6 +13,10 @@
     <name>user-storage-provider</name>
     <description>Keycloak User Storage Provider Implementation (using Storage Provider Interface)</description>
 
+    <properties>
+        <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -35,5 +39,9 @@
         </dependency>
 
     </dependencies>
+
+    <build>
+        <finalName>my-remote-mysql-user-storage-provider</finalName>
+    </build>
 
 </project>
