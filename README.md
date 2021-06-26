@@ -350,4 +350,18 @@ Google for `Google Hosted Libraries` and find jQuery
     -  Add provider: `my-remote-user-storage-provider`
     -  Priority: 0 (Lowest first)
     -  Success message appears
+
+#####  167. Trying how it works - localhost
+
+1.  Start `user-legacy-service` locally
+2.  Redeploy `my-remote-user-storage-provider`
+    -  keycloak runs in docker container so
+    -  modify LEGACY_SYSTEM_URI to "http://host.docker.internal:8099"
+    -  `mvn clean package`
+    -  `docker container cp .\my-remote-user-storage-provider.jar keycloak-postgres_keycloak_1:/opt/jboss/keycloak/standalone/deployments`
+    -   put cache policy to NO_CACHE on User Federation in Keycloak management console
+3.  Ask for authorization code
+    -  `http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth?response_type=code&client_id=photo-app-code-flow-client&scope=openid%20profile&state=jskd879sdkj&redirect_uri=http://localhost:8083/callback`
+    -  Username or email: `test2@test.com`
+    -  Password: `art`    
            

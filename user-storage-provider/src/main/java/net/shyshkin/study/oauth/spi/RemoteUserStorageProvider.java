@@ -1,6 +1,7 @@
 package net.shyshkin.study.oauth.spi;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputValidator;
@@ -9,10 +10,12 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
+import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.adapter.AbstractUserAdapter;
 import org.keycloak.storage.user.UserLookupProvider;
 
+@Slf4j
 @RequiredArgsConstructor
 public class RemoteUserStorageProvider implements UserStorageProvider,
         UserLookupProvider, CredentialInputValidator {
@@ -28,14 +31,23 @@ public class RemoteUserStorageProvider implements UserStorageProvider,
 
     @Override
     public UserModel getUserById(String id, RealmModel realm) {
-        return null;
+
+        log.info("getUserById({},{})", id, realm);
+        StorageId storageId = new StorageId(id);
+        String username = storageId.getExternalId();
+
+        return getUserByUsername(username, realm);
+
     }
 
     // We need to implement AT LEAST ONE of methods: getUserByUsername, getUserByEmail
     @Override
     public UserModel getUserByUsername(String username, RealmModel realm) {
 
+        log.info("getUserByUsername({},{})", username, realm);
+
         User user = usersService.getUserDetails(username);
+        log.info("user: {}", user);
         if (user != null) {
             return createUserModel(username, realm);
         }
@@ -48,11 +60,19 @@ public class RemoteUserStorageProvider implements UserStorageProvider,
             public String getUsername() {
                 return username;
             }
+
+            @Override
+            public String getEmail() {
+                return username;
+            }
         };
     }
 
     @Override
     public UserModel getUserByEmail(String email, RealmModel realm) {
+
+        log.info("getUserByEmail({},{})", email, realm);
+//        return getUserByUsername(email, realm);
         return null;
     }
 
@@ -79,6 +99,11 @@ public class RemoteUserStorageProvider implements UserStorageProvider,
 
     @Override
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput credentialInput) {
+
+        log.info("username: {}", user.getUsername());
+        log.info("email: {}", user.getEmail());
+        log.info("attributes: {}", user.getAttributes());
+        System.out.println("Attributes: " + user.getAttributes());
 
         String userPassword = credentialInput.getChallengeResponse();
         var verifyPasswordResponse = usersService.verifyUserPassword(user.getUsername(), userPassword);
