@@ -369,4 +369,5 @@ Google for `Google Hosted Libraries` and find jQuery
 
 1.  In service `user-legacy-service` enable endpoint `/users/**` for everyone 
 2.  Create `user-legacy-service` docker image
+3.  Modify RemoteUserStorageProvider for new URI - from docker-compose
            

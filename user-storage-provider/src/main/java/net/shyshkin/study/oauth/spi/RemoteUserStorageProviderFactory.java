@@ -9,7 +9,7 @@ import org.keycloak.storage.UserStorageProviderFactory;
 public class RemoteUserStorageProviderFactory implements UserStorageProviderFactory<RemoteUserStorageProvider> {
 
     public static final String PROVIDER_NAME = "my-remote-user-storage-provider";
-    public static final String LEGACY_SYSTEM_URI = "http://host.docker.internal:8099";
+    public static final String LEGACY_SYSTEM_URI = "http://user-legacy-service:8080";
 
 
     @Override
