@@ -20,7 +20,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
 
                 .authorizeRequests()
-                .antMatchers("/users/**").hasIpAddress("127.0.0.1")
+                .antMatchers("/users/**").permitAll()
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/actuator/health", "/actuator/info").permitAll()
 

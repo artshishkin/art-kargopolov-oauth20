@@ -364,4 +364,9 @@ Google for `Google Hosted Libraries` and find jQuery
     -  `http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth?response_type=code&client_id=photo-app-code-flow-client&scope=openid%20profile&state=jskd879sdkj&redirect_uri=http://localhost:8083/callback`
     -  Username or email: `test2@test.com`
     -  Password: `art`    
+
+#####  167. Trying how it works - docker
+
+1.  In service `user-legacy-service` enable endpoint `/users/**` for everyone 
+2.  Create `user-legacy-service` docker image
            
