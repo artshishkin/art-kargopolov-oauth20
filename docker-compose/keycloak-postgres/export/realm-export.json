@@ -2584,7 +2584,6 @@
       "oidc.ciba.grant.enabled" : "false",
       "saml.artifact.binding" : "false",
       "backchannel.logout.session.required" : "true",
-      "backchannel.logout.url" : "http://localhost:8051",
       "client_credentials.use_refresh_token" : "false",
       "saml_force_name_id_format" : "false",
       "saml.client.signature" : "false",
