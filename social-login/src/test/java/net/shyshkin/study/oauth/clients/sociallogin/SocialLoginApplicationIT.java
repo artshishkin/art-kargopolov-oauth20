@@ -4,9 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -49,9 +50,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SocialLoginApplicationIT {
 
-    public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
-    public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
-
     @Container
     static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
 
@@ -91,8 +89,12 @@ class SocialLoginApplicationIT {
         driver = browser.getWebDriver();
     }
 
-    @Test
-    void loginLogout_usingSeleniumBrowser() {
+    @ParameterizedTest
+    @CsvSource({
+            "shyshkin.art,password_art_1",
+            "test2@test.com,art"
+    })
+    void loginLogout_usingSeleniumBrowser(String username, String password) {
         //given
         String homePageUrl = "http://social-login-example:8080/home";
 
@@ -102,7 +104,7 @@ class SocialLoginApplicationIT {
         assertThat(driver.getTitle()).isEqualTo("Sign in to katarinazart");
 
         //correct signing in should redirect to home page
-        signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
+        signIn(username, password);
 
         waitFor("log IN completion",
                 List.of(
@@ -110,7 +112,8 @@ class SocialLoginApplicationIT {
 
                         () -> assertThat(driver.getPageSource())
                                 .contains("User Name Attribute:")
-                                .contains("Artem Shyshkin")
+                                .contains("Preferred User Name: ")
+                                .contains(username)
                 ));
 
         //clicking on logout link should ask for logout confirmation

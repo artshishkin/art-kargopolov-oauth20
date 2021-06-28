@@ -25,6 +25,10 @@ public class HomePageController {
         Optional.ofNullable(principal)
                 .map(oAuth2User -> oAuth2User.getAttribute("name"))
                 .ifPresent(name -> model.addAttribute("nameAttribute", name));
+
+        Optional.ofNullable(principal)
+                .map(oAuth2User -> oAuth2User.getAttribute("preferred_username"))
+                .ifPresent(name -> model.addAttribute("preferredUsername", name));
         return "home";
     }
 

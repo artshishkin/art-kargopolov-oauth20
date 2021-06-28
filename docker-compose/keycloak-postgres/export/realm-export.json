@@ -3201,6 +3201,17 @@
         "allowed-protocol-mapper-types" : [ "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper", "oidc-full-name-mapper" ]
       }
     } ],
+    "org.keycloak.storage.UserStorageProvider" : [ {
+      "id" : "1f968465-0f48-48a0-888f-1567fb14847c",
+      "name" : "my-remote-user-storage-provider",
+      "providerId" : "my-remote-user-storage-provider",
+      "subComponents" : { },
+      "config" : {
+        "cachePolicy" : [ "NO_CACHE" ],
+        "priority" : [ "0" ],
+        "enabled" : [ "true" ]
+      }
+    } ],
     "org.keycloak.keys.KeyProvider" : [ {
       "id" : "9d7e2100-39d8-4cfa-8cc9-37eff85eb17a",
       "name" : "hmac-generated",

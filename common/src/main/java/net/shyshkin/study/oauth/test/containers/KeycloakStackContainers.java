@@ -4,6 +4,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.MountableFile;
 
 import java.util.Map;
 
@@ -44,9 +45,15 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
             )
             .withFileSystemBind("C:\\Users\\Admin\\IdeaProjects\\Study\\SergeyKargopolov\\OAuth20\\art-kargopolov-oauth20\\docker-compose\\keycloak-postgres\\export\\realm-export.json", "/tmp/export/realm-export.json")
             .withExposedPorts(8080)
+            .withCopyFileToContainer(MountableFile.forHostPath("C:\\Users\\Admin\\IdeaProjects\\Study\\SergeyKargopolov\\OAuth20\\art-kargopolov-oauth20\\user-storage-provider\\target\\my-remote-user-storage-provider.jar"),
+                    "/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar")
             .dependsOn(postgreSQL)
             .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
 
+    private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/oauth20-user-legacy-service")
+            .withNetwork(network)
+            .withNetworkAliases("user-legacy-service")
+            .waitingFor(Wait.forHealthcheck());
 
     public Network getStackNetwork() {
         return network;
@@ -62,7 +69,7 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
         return postgreSQL;
     }
 
-    public  GenericContainer<?> getKeycloak() {
+    public GenericContainer<?> getKeycloak() {
         return keycloak;
     }
 
@@ -71,6 +78,7 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
         if (!containerStarted) {
             postgreSQL.start();
             keycloak.start();
+            userLegacyService.start();
         }
         containerStarted = true;
     }
