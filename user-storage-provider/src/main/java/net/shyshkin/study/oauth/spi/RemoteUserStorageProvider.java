@@ -49,21 +49,48 @@ public class RemoteUserStorageProvider implements UserStorageProvider,
         User user = usersService.getUserDetails(username);
         log.info("user: {}", user);
         if (user != null) {
-            return createUserModel(username, realm);
+            return createUserModel(user, realm);
         }
         return null;
     }
 
-    private UserModel createUserModel(String username, RealmModel realm) {
+    private UserModel createUserModel(User user, RealmModel realm) {
         return new AbstractUserAdapter(session, realm, model) {
             @Override
             public String getUsername() {
-                return username;
+                return user.getEmail();
             }
 
             @Override
             public String getEmail() {
-                return username;
+                return user.getEmail();
+            }
+
+            @Override
+            public String getFirstName() {
+                return user.getFirstName();
+            }
+
+            @Override
+            public String getLastName() {
+                return user.getLastName();
+            }
+
+            @Override
+            public String getFirstAttribute(String name) {
+                switch (name) {
+                    case UserModel.USERNAME:
+                        return getUsername();
+                    case UserModel.EMAIL:
+                        return getEmail();
+                    case UserModel.FIRST_NAME:
+                        return getFirstName();
+                    case UserModel.LAST_NAME:
+                        return getLastName();
+                    case "name":
+                        return user.getUserName();
+                }
+                return super.getFirstAttribute(name);
             }
         };
     }

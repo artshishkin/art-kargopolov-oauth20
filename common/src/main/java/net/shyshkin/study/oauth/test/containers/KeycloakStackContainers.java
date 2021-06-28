@@ -1,13 +1,16 @@
 package net.shyshkin.study.oauth.test.containers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 import java.util.Map;
 
+@Slf4j
 public class KeycloakStackContainers extends GenericContainer<KeycloakStackContainers> {
 
     private static KeycloakStackContainers instance;
@@ -48,6 +51,7 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
             .withCopyFileToContainer(MountableFile.forHostPath("C:\\Users\\Admin\\IdeaProjects\\Study\\SergeyKargopolov\\OAuth20\\art-kargopolov-oauth20\\user-storage-provider\\target\\my-remote-user-storage-provider.jar"),
                     "/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar")
             .dependsOn(postgreSQL)
+            .withLogConsumer(new Slf4jLogConsumer(log))
             .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
 
     private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/oauth20-user-legacy-service")
