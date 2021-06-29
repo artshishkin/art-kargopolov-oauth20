@@ -102,7 +102,10 @@ class WebSecurityTest {
     @Order(20)
     @CsvSource({
             DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
-            "test2@test.com,art"
+            "test2@test.com,art",
+            "kate_developer@test.com,kate",
+            "arina_admin@test.com,arina",
+            "nazar_admin_developer@test.com,nazar"
     })
     void withoutUsingProperScope(String username, String password) {
 
@@ -134,7 +137,10 @@ class WebSecurityTest {
     @Order(30)
     @CsvSource({
             DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
-            "test2@test.com,art"
+            "test2@test.com,art",
+            "kate_developer@test.com,kate",
+            "arina_admin@test.com,arina",
+            "nazar_admin_developer@test.com,nazar"
     })
     void withProperScope(String username, String password) {
 
@@ -163,9 +169,18 @@ class WebSecurityTest {
         assertThat(responseEntity.getBody()).isEqualTo("Working...");
     }
 
-    @Test
+    @ParameterizedTest
     @Order(40)
-    void developerHasAccess() {
+    @CsvSource({
+            DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+            "kate_developer@test.com,kate",
+            "nazar_admin_developer@test.com,nazar"
+    })
+    void developerHasAccess(String username, String password) {
+
+        //given
+        currentUsername = username;
+        currentPassword = password;
 
         //when
         RequestEntity<?> requestEntity = RequestEntity
@@ -180,13 +195,17 @@ class WebSecurityTest {
         assertThat(responseEntity.getBody()).isEqualTo("Working...");
     }
 
-    @Test
+    @ParameterizedTest
     @Order(45)
-    void notADeveloperHasNoAccess() {
+    @CsvSource({
+            "test2@test.com,art",
+            "arina_admin@test.com,arina"
+    })
+    void notADeveloperHasNoAccess(String username, String password) {
 
         //given
-        currentUsername = "test2@test.com";
-        currentPassword = "art";
+        currentUsername = username;
+        currentPassword = password;
 
         //when
         RequestEntity<?> requestEntity = RequestEntity
@@ -225,11 +244,18 @@ class WebSecurityTest {
     @Nested
     class SecuredMethodsTests {
 
-        @Test
-        void deleteUser_developerHasAccess() {
+        @ParameterizedTest
+        @CsvSource({
+                DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+                "kate_developer@test.com,kate",
+                "nazar_admin_developer@test.com,nazar"
+        })
+        void deleteUser_developerHasAccess(String username, String password) {
 
             //given
             UUID userId = UUID.randomUUID();
+            currentUsername = username;
+            currentPassword = password;
 
             //when
             RequestEntity<?> requestEntity = RequestEntity
@@ -244,12 +270,68 @@ class WebSecurityTest {
             assertThat(responseEntity.getBody()).isEqualTo("Deleted user with id: " + userId);
         }
 
-        @Test
-        void deleteUser_notADeveloperHasNoAccess() {
+        @ParameterizedTest
+        @Order(52)
+        @CsvSource({
+                "arina_admin@test.com,arina",
+                "nazar_admin_developer@test.com,nazar",
+        })
+        void adminHasAccess(String username, String password) {
 
             //given
-            currentUsername = "test2@test.com";
-            currentPassword = "art";
+            String uri = "/users/role/admin/status/check";
+            currentUsername = username;
+            currentPassword = password;
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .get(uri)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo("Admin status check");
+        }
+
+        @ParameterizedTest
+        @Order(52)
+        @CsvSource({
+                "arina_admin@test.com,arina",
+                "test2@test.com,art",
+        })
+        void noDevHasAccess(String username, String password) {
+
+            //given
+            String uri = "/users/role/no_developer/status/check";
+            currentUsername = username;
+            currentPassword = password;
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .get(uri)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo("No Dev status check");
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "test2@test.com,art",
+                "arina_admin@test.com,arina"
+        })
+        void deleteUser_notADeveloperHasNoAccess(String username, String password) {
+
+            //given
+            currentUsername = username;
+            currentPassword = password;
             UUID userId = UUID.randomUUID();
 
             //when
@@ -283,11 +365,18 @@ class WebSecurityTest {
             assertThat(responseEntity.getBody()).isBlank();
         }
 
-        @Test
-        void deleteUser_developerHasNoAccess() {
+        @ParameterizedTest
+        @CsvSource({
+                DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+                "kate_developer@test.com,kate",
+                "test2@test.com,art",
+        })
+        void deleteUser_notAnAdminHasNoAccess(String username, String password) {
 
             //given
             UUID userId = UUID.randomUUID();
+            currentUsername = username;
+            currentPassword = password;
 
             //when
             RequestEntity<?> requestEntity = RequestEntity
@@ -300,6 +389,31 @@ class WebSecurityTest {
             log.debug("Response entity: {}", responseEntity);
             assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             assertThat(responseEntity.getBody()).isBlank();
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "arina_admin@test.com,arina",
+                "nazar_admin_developer@test.com,nazar"
+        })
+        void deleteUser_adminHasAccess(String username, String password) {
+
+            //given
+            UUID userId = UUID.randomUUID();
+            currentUsername = username;
+            currentPassword = password;
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .delete("/users/super/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(responseEntity.getBody()).isEqualTo("Deleted Super user with id: " + userId);
         }
     }
 
