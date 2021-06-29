@@ -6,6 +6,7 @@ import net.shyshkin.study.oauth.ws.api.users.dto.OAuthResponse;
 import net.shyshkin.study.oauth.ws.api.users.dto.UserDto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
@@ -46,8 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class WebSecurityTest {
 
-    public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
-    public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
+    public static final String DEFAULT_OWNER_USERNAME = "shyshkin.art";
+    public static final String DEFAULT_OWNER_PASSWORD = "password_art_1";
 
     @Container
     static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
@@ -73,8 +74,8 @@ class WebSecurityTest {
     TestRestTemplate testRestTemplate;
 
     static OAuthResponse oAuthResponse;
-    static String currentUsername = RESOURCE_OWNER_USERNAME;
-    static String currentPassword = RESOURCE_OWNER_PASSWORD;
+    static String currentUsername;
+    static String currentPassword;
 
     @BeforeEach
     void setUp() {
@@ -87,6 +88,9 @@ class WebSecurityTest {
         keycloakRestTemplate = restTemplateBuilder
                 .rootUri(keycloakUri)
                 .build();
+
+        currentUsername = DEFAULT_OWNER_USERNAME;
+        currentPassword = DEFAULT_OWNER_PASSWORD;
     }
 
     @AfterEach
@@ -94,10 +98,19 @@ class WebSecurityTest {
         logout(true);
     }
 
-    @Test
+    @ParameterizedTest
     @Order(20)
-    void withoutUsingProperScope() {
+    @CsvSource({
+            DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+            "test2@test.com,art"
+    })
+    void withoutUsingProperScope(String username, String password) {
 
+        //given
+        currentUsername = username;
+        currentPassword = password;
+
+        //when
         String code = getAuthorizationCode("openid");
 
         log.debug("Code from keycloak: {}", code);
@@ -110,15 +123,26 @@ class WebSecurityTest {
                 .get("/users/scope/status/check")
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
                 .build();
+
+        //then
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
         log.debug("Response entity: {}", responseEntity);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    @Test
+    @ParameterizedTest
     @Order(30)
-    void withProperScope() {
+    @CsvSource({
+            DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+            "test2@test.com,art"
+    })
+    void withProperScope(String username, String password) {
 
+        //given
+        currentUsername = username;
+        currentPassword = password;
+
+        //when
         String code = getAuthorizationCode("openid profile");
 
         log.debug("Code from keycloak: {}", code);
@@ -132,6 +156,8 @@ class WebSecurityTest {
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+        //then
         log.debug("Response entity: {}", responseEntity);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody()).isEqualTo("Working...");
@@ -141,16 +167,38 @@ class WebSecurityTest {
     @Order(40)
     void developerHasAccess() {
 
-        checkJwtExists();
-
+        //when
         RequestEntity<?> requestEntity = RequestEntity
                 .get("/users/role/developer/status/check")
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+        //then
         log.debug("Response entity: {}", responseEntity);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody()).isEqualTo("Working...");
+    }
+
+    @Test
+    @Order(45)
+    void notADeveloperHasNoAccess() {
+
+        //given
+        currentUsername = "test2@test.com";
+        currentPassword = "art";
+
+        //when
+        RequestEntity<?> requestEntity = RequestEntity
+                .get("/users/role/developer/status/check")
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
+                .build();
+        ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+        //then
+        log.debug("Response entity: {}", responseEntity);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(responseEntity.getBody()).isBlank();
     }
 
     @ParameterizedTest
@@ -161,13 +209,14 @@ class WebSecurityTest {
     })
     void developerHasNoAccess(String uri) {
 
-        checkJwtExists();
-
+        //when
         RequestEntity<?> requestEntity = RequestEntity
                 .get(uri)
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+        //then
         log.debug("Response entity: {}", responseEntity);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(responseEntity.getBody()).isBlank();
@@ -175,11 +224,6 @@ class WebSecurityTest {
 
     @Nested
     class SecuredMethodsTests {
-
-        @BeforeEach
-        void setUp() {
-            checkJwtExists();
-        }
 
         @Test
         void deleteUser_developerHasAccess() {
@@ -198,6 +242,27 @@ class WebSecurityTest {
             log.debug("Response entity: {}", responseEntity);
             assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(responseEntity.getBody()).isEqualTo("Deleted user with id: " + userId);
+        }
+
+        @Test
+        void deleteUser_notADeveloperHasNoAccess() {
+
+            //given
+            currentUsername = "test2@test.com";
+            currentPassword = "art";
+            UUID userId = UUID.randomUUID();
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .delete("/users/regular/{id}", userId)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(responseEntity.getBody()).isBlank();
         }
 
         @Test
@@ -241,11 +306,6 @@ class WebSecurityTest {
     @Nested
     class PreAuthorizeTests {
 
-        @BeforeEach
-        void setUp() {
-            checkJwtExists();
-        }
-
         @Test
         void updateUser_developerHasAccess() {
 
@@ -263,6 +323,27 @@ class WebSecurityTest {
             log.debug("Response entity: {}", responseEntity);
             assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(responseEntity.getBody()).isEqualTo("Updated user with name: " + name);
+        }
+
+        @Test
+        void updateUser_notADeveloperHasNoAccess() {
+
+            //given
+            String name = "any.name";
+            currentUsername = "test2@test.com";
+            currentPassword = "art";
+
+            //when
+            RequestEntity<?> requestEntity = RequestEntity
+                    .put("/users/regular/{name}", name)
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
+                    .build();
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+            //then
+            log.debug("Response entity: {}", responseEntity);
+            assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(responseEntity.getBody()).isBlank();
         }
 
         @Test
@@ -525,6 +606,7 @@ class WebSecurityTest {
     private void logout(boolean eraseJwtToken) {
 
         String postLogoutRedirectUri = "http://keycloak:8080/auth";
+        if (oAuthResponse == null) return;
         String token = oAuthResponse.getIdToken();
 
         String url = String.format("http://keycloak:8080/auth/realms/katarinazart/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
