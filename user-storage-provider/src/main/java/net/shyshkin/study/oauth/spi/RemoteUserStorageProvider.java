@@ -8,12 +8,17 @@ import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.credential.UserCredentialStore;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.adapter.AbstractUserAdapter;
 import org.keycloak.storage.user.UserLookupProvider;
+
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -91,6 +96,19 @@ public class RemoteUserStorageProvider implements UserStorageProvider,
                         return user.getUserName();
                 }
                 return super.getFirstAttribute(name);
+            }
+
+            @Override
+            protected Set<RoleModel> getRoleMappingsInternal() {
+                Set<RoleModel> roleModels = user.getRoles()
+                        .stream()
+                        .map(realm::getRole)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                log.info("User {} has Role Models {}", user, roleModels);
+
+                return roleModels;
             }
         };
     }
