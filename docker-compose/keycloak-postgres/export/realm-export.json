@@ -1976,6 +1976,14 @@
       "containerId" : "katarinazart",
       "attributes" : { }
     }, {
+      "id" : "c4ff98f4-7399-41b6-b5d5-05587c0dca4c",
+      "name" : "user",
+      "description" : "User role for every new user",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "katarinazart",
+      "attributes" : { }
+    }, {
       "id" : "4c7b1d2b-6f5d-48c5-9498-e25f8d301e0f",
       "name" : "developer",
       "composite" : false,
@@ -2000,6 +2008,13 @@
       "id" : "30d7fdf8-4e50-48fd-8d29-db1672240c1f",
       "name" : "uma_authorization",
       "description" : "${role_uma_authorization}",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "katarinazart",
+      "attributes" : { }
+    }, {
+      "id" : "4499f7ac-026f-4f0f-a63c-c3205c975e25",
+      "name" : "admin",
       "composite" : false,
       "clientRole" : false,
       "containerId" : "katarinazart",
