@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -71,7 +72,9 @@ class WebSecurityTest {
     @Autowired
     TestRestTemplate testRestTemplate;
 
-    static String jwtAccessToken;
+    static OAuthResponse oAuthResponse;
+    static String currentUsername = RESOURCE_OWNER_USERNAME;
+    static String currentPassword = RESOURCE_OWNER_PASSWORD;
 
     @BeforeEach
     void setUp() {
@@ -86,6 +89,11 @@ class WebSecurityTest {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        logout(true);
+    }
+
     @Test
     @Order(20)
     void withoutUsingProperScope() {
@@ -94,7 +102,7 @@ class WebSecurityTest {
 
         log.debug("Code from keycloak: {}", code);
 
-        jwtAccessToken = getAccessToken(code);
+        String jwtAccessToken = requestNewAccessToken(code);
 
         log.debug("Jwt Access Token: {}", jwtAccessToken);
 
@@ -115,7 +123,7 @@ class WebSecurityTest {
 
         log.debug("Code from keycloak: {}", code);
 
-        jwtAccessToken = getAccessToken(code);
+        String jwtAccessToken = requestNewAccessToken(code);
 
         log.debug("Jwt Access Token: {}", jwtAccessToken);
 
@@ -137,7 +145,7 @@ class WebSecurityTest {
 
         RequestEntity<?> requestEntity = RequestEntity
                 .get("/users/role/developer/status/check")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
         log.debug("Response entity: {}", responseEntity);
@@ -157,7 +165,7 @@ class WebSecurityTest {
 
         RequestEntity<?> requestEntity = RequestEntity
                 .get(uri)
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                 .build();
         ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
         log.debug("Response entity: {}", responseEntity);
@@ -182,7 +190,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .delete("/users/regular/{id}", userId)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -219,7 +227,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .delete("/users/super/{id}", userId)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -247,7 +255,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .put("/users/regular/{name}", name)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -266,7 +274,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .put("/users/super/{name}", name)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -285,7 +293,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .put("/users/super/{name}", name)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -305,7 +313,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .put("/users/byId/super/{id}", userId)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -325,7 +333,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .put("/users/byId_principal/super/{id}", userId)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -348,7 +356,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .put(uri, userId)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             ResponseEntity<String> responseEntity = testRestTemplate.exchange(requestEntity, String.class);
 
@@ -376,7 +384,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .get("/users/byId/super/{id}", userId)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             var responseEntity = testRestTemplate.exchange(requestEntity, UserDto.class);
 
@@ -401,7 +409,7 @@ class WebSecurityTest {
             //when
             RequestEntity<?> requestEntity = RequestEntity
                     .get("/users/byId/super/{id}", userId)
-                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(getAccessToken()))
                     .build();
             var responseEntity = testRestTemplate.exchange(requestEntity, UserDto.class);
 
@@ -413,15 +421,20 @@ class WebSecurityTest {
     }
 
     private void checkJwtExists() {
-        if (jwtAccessToken == null) {
+        if (oAuthResponse == null) {
             String code = getAuthorizationCode("openid profile");
             log.debug("Code from keycloak: {}", code);
-            jwtAccessToken = getAccessToken(code);
+            requestNewAccessToken(code);
         }
-        log.debug("Jwt Access Token: {}", jwtAccessToken);
+        log.debug("Jwt Access Token: {}", oAuthResponse.getAccessToken());
     }
 
-    private String getAccessToken(String code) {
+    private String getAccessToken() {
+        checkJwtExists();
+        return oAuthResponse.getAccessToken();
+    }
+
+    private String requestNewAccessToken(String code) {
         //when
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -443,7 +456,7 @@ class WebSecurityTest {
         //then
         log.debug("Response from OAuth2.0 server: {}", responseEntity);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        OAuthResponse oAuthResponse = responseEntity.getBody();
+        oAuthResponse = responseEntity.getBody();
         assertThat(oAuthResponse)
                 .hasFieldOrProperty("accessToken");
 
@@ -469,7 +482,7 @@ class WebSecurityTest {
         try {
             askOAuthServerForAuthorizationCode(scope);
 
-            signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
+            signIn(currentUsername, currentPassword);
         } catch (Exception e) {
             log.debug("Exception while getting an Authorization Code", e);
         }
@@ -504,6 +517,38 @@ class WebSecurityTest {
         passwordField.sendKeys(password);
         passwordField.submit();
     }
+
+    private void logout() {
+        logout(false);
+    }
+
+    private void logout(boolean eraseJwtToken) {
+
+        String postLogoutRedirectUri = "http://keycloak:8080/auth";
+        String token = oAuthResponse.getIdToken();
+
+        String url = String.format("http://keycloak:8080/auth/realms/katarinazart/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
+                token, postLogoutRedirectUri);
+
+        if (driver == null)
+            driver = browser.getWebDriver();
+        driver.get(url);
+        await()
+                .timeout(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertAll(
+                        () -> assertThat(driver.getCurrentUrl())
+//                                .satisfies(currentUrl -> log.debug("CurrentUrl: {}", currentUrl))
+                                .startsWith(postLogoutRedirectUri),
+                        () -> assertThat(driver.getPageSource())
+//                                .satisfies(pageContent -> log.debug("Page Content: \n{}", pageContent))
+                                .contains("<html>")
+                ));
+
+        if (eraseJwtToken) {
+            oAuthResponse = null;
+        }
+    }
+
 
     static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 

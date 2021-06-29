@@ -2464,7 +2464,7 @@
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "ee68a49e-5ac6-4673-9465-51e53de3fb0e",
-    "redirectUris" : [ "http://localhost:8083/callback", "http://users-service:8080/*" ],
+    "redirectUris" : [ "http://localhost:8083/callback", "http://localhost:8090/users/*", "http://users-service:8080/*", "http://keycloak:8080/*" ],
     "webOrigins" : [ ],
     "notBefore" : 0,
     "bearerOnly" : false,
