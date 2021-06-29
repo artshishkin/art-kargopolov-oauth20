@@ -8,7 +8,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -18,19 +18,50 @@ public class InitialSetup {
     private final PasswordEncoder passwordEncoder;
 
     @EventListener
-    @Transactional
     public void onApplicationEvent(ApplicationReadyEvent event) {
 
-        UserEntity user = new UserEntity(
-                1L,
-                "qswe3mg84mfjtu",
-                "Art",
-                "Shyshkin",
-                "test2@test.com",
-                passwordEncoder.encode("art"),
-                "",
-                false);
-
-        usersRepository.save(user);
+        List
+                .of(
+                        new UserEntity(
+                                1L,
+                                "qswe3mg84mfjtu",
+                                "Art",
+                                "Shyshkin",
+                                "test2@test.com",
+                                passwordEncoder.encode("art"),
+                                "",
+                                false,
+                                "user"),
+                        new UserEntity(
+                                2L,
+                                "blablabla2",
+                                "Kate",
+                                "Shyshkina",
+                                "kate_developer@test.com",
+                                passwordEncoder.encode("kate"),
+                                "",
+                                false,
+                                "developer"),
+                        new UserEntity(
+                                3L,
+                                "blablabla3",
+                                "Arina",
+                                "Shyshkina",
+                                "arina_admin@test.com",
+                                passwordEncoder.encode("arina"),
+                                "",
+                                false,
+                                "admin"),
+                        new UserEntity(
+                                4L,
+                                "blablabla4",
+                                "Nazar",
+                                "Shyshkin",
+                                "nazar_admin_developer@test.com",
+                                passwordEncoder.encode("nazar"),
+                                "",
+                                false,
+                                "admin,developer"))
+                .forEach(usersRepository::save);
     }
 }

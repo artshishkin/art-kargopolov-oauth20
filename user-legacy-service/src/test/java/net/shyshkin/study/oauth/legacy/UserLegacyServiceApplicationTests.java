@@ -32,11 +32,39 @@ class UserLegacyServiceApplicationTests {
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
         UserRest body = responseEntity.getBody();
         assertThat(body)
-                .hasNoNullFieldsOrPropertiesExcept("userName")
-                .hasFieldOrPropertyWithValue("userId","qswe3mg84mfjtu")
-                .hasFieldOrPropertyWithValue("firstName","Art")
-                .hasFieldOrPropertyWithValue("lastName","Shyshkin")
-                .hasFieldOrPropertyWithValue("email","test2@test.com");
+                .hasNoNullFieldsOrProperties()
+                .hasFieldOrPropertyWithValue("userId", "qswe3mg84mfjtu")
+                .hasFieldOrPropertyWithValue("firstName", "Art")
+                .hasFieldOrPropertyWithValue("lastName", "Shyshkin")
+                .hasFieldOrPropertyWithValue("userName", "Art Shyshkin")
+                .hasFieldOrPropertyWithValue("email", "test2@test.com");
+        assertThat(body.getRoles())
+                .hasSize(1)
+                .allSatisfy(role -> assertThat(role).isEqualTo("user"));
+    }
+
+    @Test
+    void getUserByEmail_with2Roles() {
+        //given
+        String email = "nazar_admin_developer@test.com";
+
+        //when
+        ResponseEntity<UserRest> responseEntity = testRestTemplate.getForEntity("/users/{userName}", UserRest.class, email);
+
+        //then
+        log.debug("Response entity: {}", responseEntity);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
+        UserRest body = responseEntity.getBody();
+        assertThat(body)
+                .hasNoNullFieldsOrProperties()
+                .hasFieldOrPropertyWithValue("userId", "blablabla4")
+                .hasFieldOrPropertyWithValue("firstName", "Nazar")
+                .hasFieldOrPropertyWithValue("lastName", "Shyshkin")
+                .hasFieldOrPropertyWithValue("userName", "Nazar Shyshkin")
+                .hasFieldOrPropertyWithValue("email", "nazar_admin_developer@test.com");
+        assertThat(body.getRoles())
+                .hasSize(2)
+                .contains("admin","developer");
     }
 
     @Test
@@ -74,7 +102,7 @@ class UserLegacyServiceApplicationTests {
         VerifyPasswordResponse body = responseEntity.getBody();
         assertThat(body)
                 .hasNoNullFieldsOrProperties()
-                .hasFieldOrPropertyWithValue("result",true);
+                .hasFieldOrPropertyWithValue("result", true);
     }
 
     @Test
@@ -96,7 +124,7 @@ class UserLegacyServiceApplicationTests {
         VerifyPasswordResponse body = responseEntity.getBody();
         assertThat(body)
                 .hasNoNullFieldsOrProperties()
-                .hasFieldOrPropertyWithValue("result",false);
+                .hasFieldOrPropertyWithValue("result", false);
     }
 
     @Test
@@ -118,7 +146,7 @@ class UserLegacyServiceApplicationTests {
         VerifyPasswordResponse body = responseEntity.getBody();
         assertThat(body)
                 .hasNoNullFieldsOrProperties()
-                .hasFieldOrPropertyWithValue("result",false);
+                .hasFieldOrPropertyWithValue("result", false);
     }
 
 }
