@@ -2,6 +2,7 @@ package net.shyshkin.study.oauth.clients.sociallogin.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,6 +30,11 @@ public class HomePageController {
         Optional.ofNullable(principal)
                 .map(oAuth2User -> oAuth2User.getAttribute("preferred_username"))
                 .ifPresent(name -> model.addAttribute("preferredUsername", name));
+
+        if (principal instanceof DefaultOidcUser) {
+            log.debug("OidcIdToken: {}", ((DefaultOidcUser) principal).getIdToken().getTokenValue());
+        }
+
         return "home";
     }
 

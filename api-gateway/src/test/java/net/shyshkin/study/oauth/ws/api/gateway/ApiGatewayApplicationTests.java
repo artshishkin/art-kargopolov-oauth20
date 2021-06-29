@@ -3,9 +3,7 @@ package net.shyshkin.study.oauth.ws.api.gateway;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
 import net.shyshkin.study.oauth.ws.api.gateway.dto.OAuthResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -35,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -99,6 +98,7 @@ class ApiGatewayApplicationTests {
     private WebClient keycloakWebClient;
 
     static String jwtAccessToken;
+    static OAuthResponse oAuthResponse;
 
     @BeforeEach
     void setUp() {
@@ -187,6 +187,53 @@ class ApiGatewayApplicationTests {
                     .expectStatus().isForbidden()
                     .expectBody()
                     .isEmpty();
+        }
+    }
+
+    @Nested
+    class LogoutTests {
+
+        @BeforeEach
+        void setUp() {
+            //given
+            jwtAccessToken = null;
+            checkJwtExists();
+        }
+
+        @AfterEach
+        void tearDown() {
+            jwtAccessToken = null;
+            oAuthResponse = null;
+        }
+
+        @Test
+        @DisplayName("When user log out from Keycloak then next attempt to get Auth code should redirect to Keycloak Sign in form")
+        void whenLogout_thenRequestingAuthCode_shouldRedirectToSignInPage() {
+
+            //given
+            webTestClient.get().uri("/users/status/check")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+
+                    //then
+                    .expectStatus().isOk()
+                    .expectBody(String.class)
+                    .isEqualTo("Working...");
+
+            //when
+            logout();
+
+            //then - we can still login with jwtAccessToken
+            webTestClient.get().uri("/users/status/check")
+                    .headers(httpHeaders -> httpHeaders.setBearerAuth(jwtAccessToken))
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(String.class)
+                    .isEqualTo("Working...");
+
+            //then - BUT session in keycloak is closed so next attempt to receive auth code will redirect to Sign In Form
+            askOAuthServerForAuthorizationCode("openid profile");
+            assertThat(driver.getTitle()).isEqualTo("Sign in to katarinazart");
         }
     }
 
@@ -413,9 +460,8 @@ class ApiGatewayApplicationTests {
                 .block();
 
         //then
-        log.debug("Response from OAuth2.0 server: {}", responseEntity);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        OAuthResponse oAuthResponse = responseEntity.getBody();
+        oAuthResponse = responseEntity.getBody();
         assertThat(oAuthResponse)
                 .hasFieldOrProperty("accessToken");
 
@@ -479,6 +525,8 @@ class ApiGatewayApplicationTests {
         String redirectedUrl = driver.getCurrentUrl();
         log.debug("Redirected URL: {}", redirectedUrl);
 
+        driver.manage().getCookies().forEach(cookie -> log.debug("Cookie: {}", cookie));
+
         return redirectedUrl.split("code=")[1];
     }
 
@@ -504,6 +552,42 @@ class ApiGatewayApplicationTests {
         WebElement passwordField = driver.findElementById("password");
         passwordField.sendKeys(password);
         passwordField.submit();
+
+        log.debug("Cookies: {}", driver.manage().getCookies());
+        driver.manage().getCookies().forEach(cookie -> log.debug("Cookie: {}", cookie));
+    }
+
+    private void logout() {
+        logout(false);
+    }
+
+    private void logout(boolean eraseJwtToken) {
+
+//        http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/logout?id_token_hint=...&post_logout_redirect_uri=http://localhost:8051
+        String postLogoutRedirectUri = "http://users-service:8080/users/status/check";
+        String token = oAuthResponse.getIdToken();
+
+        String url = String.format("http://keycloak:8080/auth/realms/katarinazart/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
+                token, postLogoutRedirectUri);
+
+        if (driver == null)
+            driver = browser.getWebDriver();
+        driver.get(url);
+        await()
+                .timeout(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertAll(
+                        () -> assertThat(driver.getCurrentUrl())
+                                .satisfies(currentUrl -> log.debug("CurrentUrl: {}", currentUrl))
+                                .isEqualTo(postLogoutRedirectUri),
+                        () -> assertThat(driver.getPageSource())
+                                .satisfies(pageContent -> log.debug("Page Content: \n{}", pageContent))
+                                .contains("<html>")
+                ));
+
+        if (eraseJwtToken) {
+            jwtAccessToken = null;
+            oAuthResponse = null;
+        }
     }
 
     static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
