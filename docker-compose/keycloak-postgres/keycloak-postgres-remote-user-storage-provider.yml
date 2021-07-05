@@ -31,7 +31,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - C:\Users\Admin\IdeaProjects\Study\SergeyKargopolov\OAuth20\art-kargopolov-oauth20\user-storage-provider\target\my-remote-user-storage-provider.jar:/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar
+      - ./../../user-storage-provider/target/my-remote-user-storage-provider.jar:/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar
 
   user-legacy-service:
     image: artarkatesoft/oauth20-user-legacy-service

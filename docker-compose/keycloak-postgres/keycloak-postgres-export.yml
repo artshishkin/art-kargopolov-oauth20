@@ -31,7 +31,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - C:\Users\Admin\IdeaProjects\Study\SergeyKargopolov\OAuth20\art-kargopolov-oauth20\docker-compose\keycloak-postgres\export:/tmp/export
+      - ./export:/tmp/export
     command:
       - "-b 0.0.0.0"
       - "-Dkeycloak.migration.action=export"
