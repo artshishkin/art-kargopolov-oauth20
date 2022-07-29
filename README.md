@@ -1,3 +1,7 @@
+[![GitHub issues](https://img.shields.io/github/issues/artshishkin/art-kargopolov-oauth20)](https://github.com/artshishkin/art-kargopolov-oauth20/issues)
+![Spring Boot version][springver]
+![Project licence][licence]
+
 # art-kargopolov-oauth20
 OAuth 2.0 in Spring Boot Applications - Tutorial from Sergey Kargopolov (Udemy) 
 
@@ -371,4 +375,11 @@ Google for `Google Hosted Libraries` and find jQuery
 2.  Create `user-legacy-service` docker image
 3.  Modify RemoteUserStorageProvider for new URI - from docker-compose
 4.  Create `keycloak-postgres-remote-user-storage-provider` docker-compose file
+
+
+
+[springver]: https://img.shields.io/badge/dynamic/xml?label=Spring%20Boot&query=%2F%2A%5Blocal-name%28%29%3D%27project%27%5D%2F%2A%5Blocal-name%28%29%3D%27parent%27%5D%2F%2A%5Blocal-name%28%29%3D%27version%27%5D&url=https%3A%2F%2Fraw.githubusercontent.com%2Fartshishkin%2Fart-kargopolov-oauth20%2Fmaster%2Fpom.xml&logo=Spring&labelColor=white&color=grey
+[licence]: https://img.shields.io/github/license/artshishkin/art-kargopolov-oauth20.svg
+
+
            
