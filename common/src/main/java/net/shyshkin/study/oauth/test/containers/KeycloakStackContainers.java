@@ -46,9 +46,9 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
                     "-Dkeycloak.migration.file=/tmp/export/realm-export.json",
                     "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
             )
-            .withFileSystemBind("C:\\Users\\Admin\\IdeaProjects\\Study\\SergeyKargopolov\\OAuth20\\art-kargopolov-oauth20\\docker-compose\\keycloak-postgres\\export\\realm-export.json", "/tmp/export/realm-export.json")
+            .withFileSystemBind("./../docker-compose/keycloak-postgres/export/realm-export.json", "/tmp/export/realm-export.json")
             .withExposedPorts(8080)
-            .withCopyFileToContainer(MountableFile.forHostPath("C:\\Users\\Admin\\IdeaProjects\\Study\\SergeyKargopolov\\OAuth20\\art-kargopolov-oauth20\\user-storage-provider\\target\\my-remote-user-storage-provider.jar"),
+            .withCopyFileToContainer(MountableFile.forHostPath("./../user-storage-provider/target/my-remote-user-storage-provider.jar"),
                     "/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar")
             .dependsOn(postgreSQL)
             .withLogConsumer(new Slf4jLogConsumer(log))
