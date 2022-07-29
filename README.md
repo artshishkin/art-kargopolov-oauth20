@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/artshishkin/art-kargopolov-oauth20.svg?style=svg)](https://circleci.com/gh/artshishkin/art-kargopolov-oauth20)
+[![codecov](https://codecov.io/gh/artshishkin/art-kargopolov-oauth20/branch/master/graph/badge.svg)](https://codecov.io/gh/artshishkin/art-kargopolov-oauth20)
+![Java CI with Maven](https://github.com/artshishkin/art-kargopolov-oauth20/workflows/Java%20CI%20with%20Maven/badge.svg)
 [![GitHub issues](https://img.shields.io/github/issues/artshishkin/art-kargopolov-oauth20)](https://github.com/artshishkin/art-kargopolov-oauth20/issues)
 ![Spring Boot version][springver]
 ![Project licence][licence]
