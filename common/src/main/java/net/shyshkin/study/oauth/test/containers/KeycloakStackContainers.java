@@ -19,14 +19,14 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
 
     private final Network network = Network.newNetwork();
 
-    private final PostgreSQLContainer<?> postgreSQL = new PostgreSQLContainer<>("postgres")
+    private final PostgreSQLContainer<?> postgreSQL = new PostgreSQLContainer<>("postgres:13.1")
             .withDatabaseName("keycloak")
             .withUsername("keycloak")
             .withPassword("password")
             .withNetwork(network)
             .withNetworkAliases("postgres");
 
-    private final GenericContainer<?> keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:latest")
+    private final GenericContainer<?> keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:13.0.1")
             .withNetwork(network)
             .withNetworkAliases("keycloak")
             .withEnv(Map.of(
