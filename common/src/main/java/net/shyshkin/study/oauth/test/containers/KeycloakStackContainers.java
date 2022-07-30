@@ -70,11 +70,11 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
     }
 
     public PostgreSQLContainer<?> getPostgreSQL() {
-        return postgreSQL;
+        return getInstance().postgreSQL;
     }
 
     public GenericContainer<?> getKeycloak() {
-        return keycloak;
+        return getInstance().keycloak;
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -100,6 +101,7 @@ class PhotoAppWebClientApplicationIT {
             .withExposedPorts(8080)
             .dependsOn(keycloak, gatewayService)
             .withLogConsumer(new Slf4jLogConsumer(log))
+            .withStartupTimeout(Duration.ofSeconds(90))
             .waitingFor(Wait.forLogMessage(".*Completed initialization in.*\\n", 1));
 
     RemoteWebDriver driver;
