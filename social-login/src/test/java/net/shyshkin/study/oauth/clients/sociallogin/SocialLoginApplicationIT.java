@@ -8,6 +8,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -117,13 +118,13 @@ class SocialLoginApplicationIT {
                 ));
 
         //clicking on logout link should ask for logout confirmation
-        WebElement aLink = driver.findElementByTagName("a");
+        WebElement aLink = driver.findElement(By.tagName("a"));
         aLink.click();
 
         assertThat(driver.getTitle()).isEqualTo("Confirm Log Out?");
 
         //clicking on logout confirmation button should redirect to index page
-        driver.findElementByTagName("button").submit();
+        driver.findElement(By.tagName("button")).submit();
 
         waitFor("log OUT completion",
                 List.of(
@@ -170,11 +171,11 @@ class SocialLoginApplicationIT {
 
     private void signIn(String username, String password) {
         //id = "username"
-        WebElement usernameField = driver.findElementById("username");
+        WebElement usernameField = driver.findElement(By.id("username"));
         usernameField.sendKeys(username);
 
         //id = "password"
-        WebElement passwordField = driver.findElementById("password");
+        WebElement passwordField = driver.findElement(By.id("password"));
         passwordField.sendKeys(password);
         passwordField.submit();
     }

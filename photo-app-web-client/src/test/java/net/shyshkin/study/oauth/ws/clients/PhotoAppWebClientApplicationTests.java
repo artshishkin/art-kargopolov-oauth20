@@ -3,6 +3,7 @@ package net.shyshkin.study.oauth.ws.clients;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
 import org.junit.jupiter.api.*;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -117,7 +118,7 @@ class PhotoAppWebClientApplicationTests {
                     logUrlAndContent();
 
                     assertThat(driver.getTitle()).isEqualTo("Albums Page");
-                    assertThat(driver.findElementByTagName("h1").getText()).isEqualTo("Albums page");
+                    assertThat(driver.findElement(By.tagName("h1")).getText()).isEqualTo("Albums page");
 
                     assertThat(driver.getPageSource())
                             .contains("WebAlbumTitle1");
@@ -134,11 +135,11 @@ class PhotoAppWebClientApplicationTests {
         logUrlAndContent();
 
         //id = "username"
-        WebElement usernameField = driver.findElementById("username");
+        WebElement usernameField = driver.findElement(By.id("username"));
         usernameField.sendKeys(username);
 
         //id = "password"
-        WebElement passwordField = driver.findElementById("password");
+        WebElement passwordField = driver.findElement(By.id("password"));
         passwordField.sendKeys(password);
         passwordField.submit();
     }

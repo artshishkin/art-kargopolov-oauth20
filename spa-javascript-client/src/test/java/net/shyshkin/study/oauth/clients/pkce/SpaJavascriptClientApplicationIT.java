@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -119,38 +120,38 @@ class SpaJavascriptClientApplicationIT {
         driver.get(indexPageUrl);
 
         assertThat(driver.getTitle()).isEqualTo("Javascript Application with PKCE");
-        assertThat(driver.findElementById("redirectHostUri").getText()).isEqualTo("http://spa-javascript-client:8080");
-        assertThat(driver.findElementById("oAuthServerUri").getText()).isEqualTo("http://keycloak:8080");
-        assertThat(driver.findElementById("usersApiUri").getText()).isEqualTo("http://users-service:8080");
-        assertThat(driver.findElementById("gatewayUri").getText()).isEqualTo("http://gateway-service:8080");
-        assertThat(driver.findElementById("resourceServerUri").getAttribute("value")).isEqualTo("http://users-service:8080");
+        assertThat(driver.findElement(By.id("redirectHostUri")).getText()).isEqualTo("http://spa-javascript-client:8080");
+        assertThat(driver.findElement(By.id("oAuthServerUri")).getText()).isEqualTo("http://keycloak:8080");
+        assertThat(driver.findElement(By.id("usersApiUri")).getText()).isEqualTo("http://users-service:8080");
+        assertThat(driver.findElement(By.id("gatewayUri")).getText()).isEqualTo("http://gateway-service:8080");
+        assertThat(driver.findElement(By.id("resourceServerUri")).getAttribute("value")).isEqualTo("http://users-service:8080");
 
         //click on button `Generate Random State Value` should change text in `stateValue` field
-        driver.findElementById("generateStateBtn").click();
-        assertThat(driver.findElementById("stateValue").getText()).isNotEqualTo("Some Value");
+        driver.findElement(By.id("generateStateBtn")).click();
+        assertThat(driver.findElement(By.id("stateValue")).getText()).isNotEqualTo("Some Value");
 
         //click on button `Generate Code Verifier Value` should change text in `codeVerifierValue` field
-        driver.findElementById("generateCodeVerifierBtn").click();
-        assertThat(driver.findElementById("codeVerifierValue").getText()).isNotEqualTo("Code Verifier Value");
+        driver.findElement(By.id("generateCodeVerifierBtn")).click();
+        assertThat(driver.findElement(By.id("codeVerifierValue")).getText()).isNotEqualTo("Code Verifier Value");
 
 //        logCurrentPage();
 
         //click on button `Generate Code Challenge Value` should change text in `codeVerifierValue` field
-        WebElement generateCodeChallengeBtn = driver.findElementById("generateCodeChallengeBtn");
+        WebElement generateCodeChallengeBtn = driver.findElement(By.id("generateCodeChallengeBtn"));
         generateCodeChallengeBtn.click();
         log.debug("generateCodeChallengeBtn: {}", generateCodeChallengeBtn);
 
         waitFor("generating code Challenge",
                 List.of(
-                        () -> driver.findElementById("generateCodeChallengeBtn").click(),
-                        () -> assertThat(driver.findElementById("codeChallengeValue").getText()).isNotEqualTo("Code Challenge Value")
+                        () -> driver.findElement(By.id("generateCodeChallengeBtn")).click(),
+                        () -> assertThat(driver.findElement(By.id("codeChallengeValue")).getText()).isNotEqualTo("Code Challenge Value")
                 ));
 
         String indexWindowHandle = driver.getWindowHandle();
         log.debug("Index Window Handler: {}", indexWindowHandle);
 
         //click on button `Get Auth Code` should pop up new window for signing into keycloak
-        driver.findElementById("getAuthCodeBtn").click();
+        driver.findElement(By.id("getAuthCodeBtn")).click();
 
         Set<String> windowHandles = driver.getWindowHandles();
         assertThat(windowHandles).hasSize(2);
@@ -189,7 +190,7 @@ class SpaJavascriptClientApplicationIT {
                 List.of(
                         () -> assertThat(driver.getTitle()).isEqualTo("Javascript Application with PKCE"),
 
-                        () -> assertThat(driver.findElementById("accessToken").getText())
+                        () -> assertThat(driver.findElement(By.id("accessToken")).getText())
                                 .isNotBlank()
                                 .hasSizeGreaterThan(20)
                 ));
@@ -203,7 +204,7 @@ class SpaJavascriptClientApplicationIT {
 
         for (String buttonsId : directResourceServerButtonsIds) {
             log.debug("Clicking on `{}`", buttonsId);
-            driver.findElementById(buttonsId).click();
+            driver.findElement(By.id(buttonsId)).click();
             Alert alert = driver.switchTo().alert();
             assertThat(alert.getText()).isEqualTo("Working...");
             alert.accept();
@@ -212,7 +213,7 @@ class SpaJavascriptClientApplicationIT {
         //click on buttons `Delete user by fake id` should show alert with "Deleted user with id: some_fake_id" message
         for (String buttonsId : List.of("deleteRegularUserBtn")) {
             log.debug("Clicking on `{}`", buttonsId);
-            driver.findElementById(buttonsId).click();
+            driver.findElement(By.id(buttonsId)).click();
             Alert alert = driver.switchTo().alert();
             assertThat(alert.getText()).isEqualTo("Deleted user with id: some_fake_id");
             alert.accept();
@@ -221,7 +222,7 @@ class SpaJavascriptClientApplicationIT {
         //click on buttons `Get Info From Resource Server `users` through Gateway` should show alert with "Working..." message
         for (String buttonsId : List.of("getInfoFromResourceServerThroughGatewayBtn")) {
             log.debug("Clicking on `{}`", buttonsId);
-            driver.findElementById(buttonsId).click();
+            driver.findElement(By.id(buttonsId)).click();
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
@@ -233,15 +234,15 @@ class SpaJavascriptClientApplicationIT {
         }
 
         //get Info From Resource Server through API Gateway should show alert with "Working..." message
-        String gatewayUri = driver.findElementById("gatewayUri").getText();
+        String gatewayUri = driver.findElement(By.id("gatewayUri")).getText();
         log.debug("Gateway Uri: {}", gatewayUri);
-        driver.findElementById("resourceServerUri").clear();
-        driver.findElementById("resourceServerUri").sendKeys(gatewayUri);
+        driver.findElement(By.id("resourceServerUri")).clear();
+        driver.findElement(By.id("resourceServerUri")).sendKeys(gatewayUri);
 
-        assertThat(driver.findElementById("resourceServerUri").getAttribute("value")).isEqualTo(gatewayUri);
+        assertThat(driver.findElement(By.id("resourceServerUri")).getAttribute("value")).isEqualTo(gatewayUri);
         for (String buttonsId : directResourceServerButtonsIds) {
             log.debug("GATEWAY: Clicking on `{}`", buttonsId);
-            driver.findElementById("getInfoFromResourceServerDirectBtn").click();
+            driver.findElement(By.id("getInfoFromResourceServerDirectBtn")).click();
             Alert alert = driver.switchTo().alert();
             assertThat(alert.getText()).isEqualTo("Working...");
             alert.accept();
@@ -250,7 +251,7 @@ class SpaJavascriptClientApplicationIT {
         //delete user through API Gateway should show alert with "Deleted user with id: some_fake_id" message
         for (String buttonsId : List.of("deleteRegularUserBtn")) {
             log.debug("GATEWAY: Clicking on `{}`", buttonsId);
-            driver.findElementById(buttonsId).click();
+            driver.findElement(By.id(buttonsId)).click();
             Alert alert = driver.switchTo().alert();
             assertThat(alert.getText()).isEqualTo("Deleted user with id: some_fake_id");
             alert.accept();
@@ -290,11 +291,11 @@ class SpaJavascriptClientApplicationIT {
 
     private void signIn(String username, String password) {
         //id = "username"
-        WebElement usernameField = driver.findElementById("username");
+        WebElement usernameField = driver.findElement(By.id("username"));
         usernameField.sendKeys(username);
 
         //id = "password"
-        WebElement passwordField = driver.findElementById("password");
+        WebElement passwordField = driver.findElement(By.id("password"));
         passwordField.sendKeys(password);
         passwordField.submit();
     }

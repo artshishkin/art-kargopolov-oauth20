@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -151,7 +152,7 @@ class PhotoAppWebClientApplicationIT {
                         lastPageContent.set(pageSource);
                     }
                     assertThat(driver.getTitle()).isEqualTo("Albums Page");
-                    assertThat(driver.findElementByTagName("h1").getText()).isEqualTo("Albums page");
+                    assertThat(driver.findElement(By.tagName("h1")).getText()).isEqualTo("Albums page");
 
                     assertThat(pageSource)
                             .contains("AlbumTitle1")
@@ -162,11 +163,11 @@ class PhotoAppWebClientApplicationIT {
 
     private void signIn(String username, String password) {
         //id = "username"
-        WebElement usernameField = driver.findElementById("username");
+        WebElement usernameField = driver.findElement(By.id("username"));
         usernameField.sendKeys(username);
 
         //id = "password"
-        WebElement passwordField = driver.findElementById("password");
+        WebElement passwordField = driver.findElement(By.id("password"));
         passwordField.sendKeys(password);
         passwordField.submit();
     }

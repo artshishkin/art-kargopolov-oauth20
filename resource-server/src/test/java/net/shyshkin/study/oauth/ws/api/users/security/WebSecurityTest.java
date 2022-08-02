@@ -8,6 +8,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -704,11 +705,11 @@ class WebSecurityTest {
 
     private void signIn(String username, String password) {
         //id = "username"
-        WebElement usernameField = driver.findElementById("username");
+        WebElement usernameField = driver.findElement(By.id("username"));
         usernameField.sendKeys(username);
 
         //id = "password"
-        WebElement passwordField = driver.findElementById("password");
+        WebElement passwordField = driver.findElement(By.id("password"));
         passwordField.sendKeys(password);
         passwordField.submit();
     }
