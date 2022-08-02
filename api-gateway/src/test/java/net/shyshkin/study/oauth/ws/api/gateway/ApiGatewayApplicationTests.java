@@ -66,7 +66,7 @@ class ApiGatewayApplicationTests {
             .dependsOn(keycloak);
 
     @Container
-    static GenericContainer<?> usersService = new GenericContainer<>("artarkatesoft/oauth20-resource-server")
+    static GenericContainer<?> usersService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-resource-server")
             .withNetwork(network)
             .withNetworkAliases("users-service")
             .withExposedPorts(8080)
@@ -74,7 +74,7 @@ class ApiGatewayApplicationTests {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/oauth20-albums-service")
+    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-albums-service")
             .withNetwork(network)
             .withNetworkAliases("albums-service")
             .withExposedPorts(8080)
@@ -82,7 +82,7 @@ class ApiGatewayApplicationTests {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> photosService = new GenericContainer<>("artarkatesoft/oauth20-photos-service")
+    static GenericContainer<?> photosService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-photos-service")
             .withNetwork(network)
             .withNetworkAliases("photos-service")
             .withExposedPorts(8080)

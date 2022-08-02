@@ -61,14 +61,14 @@ class ApiGatewayLoadBalancingTests {
     static Network network = keycloakStackContainers.getStackNetwork();
 
     @Container
-    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/oauth20-discovery-service")
+    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")
             .withNetwork(network)
             .withNetworkAliases("discovery-service")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> usersService1 = new GenericContainer<>("artarkatesoft/oauth20-resource-server")
+    static GenericContainer<?> usersService1 = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-resource-server")
             .withNetwork(network)
             .withNetworkAliases("users-service")
             .withExposedPorts(8080)
@@ -77,7 +77,7 @@ class ApiGatewayLoadBalancingTests {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> usersService2 = new GenericContainer<>("artarkatesoft/oauth20-resource-server")
+    static GenericContainer<?> usersService2 = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-resource-server")
             .withNetwork(network)
             .withNetworkAliases("users-service")
             .withExposedPorts(8080)
@@ -86,7 +86,7 @@ class ApiGatewayLoadBalancingTests {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/oauth20-albums-service")
+    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-albums-service")
             .withNetwork(network)
             .withNetworkAliases("albums-service")
             .withExposedPorts(8080)
@@ -95,7 +95,7 @@ class ApiGatewayLoadBalancingTests {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> photosService = new GenericContainer<>("artarkatesoft/oauth20-photos-service")
+    static GenericContainer<?> photosService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-photos-service")
             .withNetwork(network)
             .withNetworkAliases("photos-service")
             .withExposedPorts(8080)
@@ -104,7 +104,7 @@ class ApiGatewayLoadBalancingTests {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/oauth20-api-gateway")
+    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-api-gateway")
             .withNetwork(network)
             .withNetworkAliases("gateway-service")
             .withExposedPorts(8080)

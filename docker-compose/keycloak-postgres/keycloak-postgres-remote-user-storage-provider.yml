@@ -41,7 +41,7 @@ services:
       - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
 
   user-legacy-service:
-    image: artarkatesoft/oauth20-user-legacy-service:${SERVICE_VERSION:-latest}
+    image: artarkatesoft/art-kargopolov-oauth20-user-legacy-service:${SERVICE_VERSION:-latest}
     depends_on:
       - keycloak
 

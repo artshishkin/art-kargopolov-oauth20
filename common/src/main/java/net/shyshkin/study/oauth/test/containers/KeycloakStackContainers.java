@@ -63,7 +63,7 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
             .withLogConsumer(new Slf4jLogConsumer(log))
             .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
 
-    private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/oauth20-user-legacy-service:" + getVersion("SERVICE_VERSION"))
+    private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-user-legacy-service:" + getVersion("SERVICE_VERSION"))
             .withNetwork(network)
             .withNetworkAliases("user-legacy-service")
             .waitingFor(Wait.forHealthcheck());

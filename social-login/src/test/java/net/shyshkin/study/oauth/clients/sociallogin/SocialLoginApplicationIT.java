@@ -66,7 +66,7 @@ class SocialLoginApplicationIT {
             .dependsOn(keycloak);
 
     @Container
-    static GenericContainer<?> socialLoginExample = new GenericContainer<>("artarkatesoft/oauth20-social-login")
+    static GenericContainer<?> socialLoginExample = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-social-login")
             .withNetwork(network)
             .withNetworkAliases("social-login-example")
             .withEnv(Map.of(

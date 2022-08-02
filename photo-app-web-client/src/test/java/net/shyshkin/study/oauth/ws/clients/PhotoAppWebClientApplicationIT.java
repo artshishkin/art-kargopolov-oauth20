@@ -64,14 +64,14 @@ class PhotoAppWebClientApplicationIT {
             .dependsOn(keycloak);
 
     @Container
-    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/oauth20-discovery-service")
+    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")
             .withNetwork(network)
             .withNetworkAliases("discovery-service")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/oauth20-albums-service")
+    static GenericContainer<?> albumsService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-albums-service")
             .withNetwork(network)
             .withNetworkAliases("albums-service")
             .withExposedPorts(8080)
@@ -80,7 +80,7 @@ class PhotoAppWebClientApplicationIT {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/oauth20-api-gateway")
+    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-api-gateway")
             .withNetwork(network)
             .withNetworkAliases("gateway-service")
             .withExposedPorts(8080)
@@ -92,7 +92,7 @@ class PhotoAppWebClientApplicationIT {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> photoAppWebClient = new GenericContainer<>("artarkatesoft/oauth20-photo-app-web-client")
+    static GenericContainer<?> photoAppWebClient = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-photo-app-web-client")
             .withNetwork(network)
             .withNetworkAliases("photo-app-webclient")
             .withEnv(Map.of(

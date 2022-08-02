@@ -37,7 +37,7 @@
         <selenium.version>4.3.0</selenium.version>
         <awaitility.version>4.2.0</awaitility.version>
         <docker.image.prefix>artarkatesoft</docker.image.prefix>
-        <docker.image.name>oauth20-${project.artifactId}</docker.image.name>
+        <docker.image.name>art-kargopolov-oauth20-${project.artifactId}</docker.image.name>
         <keycloak.version>14.0.0</keycloak.version>
         <webjars-jquery.version>3.6.0</webjars-jquery.version>
         <mapstruct.version>1.5.1.Final</mapstruct.version>
