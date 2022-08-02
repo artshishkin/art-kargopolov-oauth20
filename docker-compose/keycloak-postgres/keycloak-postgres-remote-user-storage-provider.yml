@@ -34,7 +34,7 @@ services:
       - ./../../user-storage-provider/target/my-remote-user-storage-provider.jar:/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar
 
   user-legacy-service:
-    image: artarkatesoft/oauth20-user-legacy-service:${SERVICE_VERSION:-latest}
+    image: artarkatesoft/art-kargopolov-oauth20-user-legacy-service:${SERVICE_VERSION:-latest}
     depends_on:
       - keycloak
 

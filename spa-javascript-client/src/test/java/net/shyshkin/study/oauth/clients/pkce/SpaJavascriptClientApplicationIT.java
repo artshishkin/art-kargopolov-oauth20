@@ -53,14 +53,14 @@ class SpaJavascriptClientApplicationIT {
     static Network network = keycloakStackContainers.getStackNetwork();
 
     @Container
-    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/oauth20-discovery-service")
+    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")
             .withNetwork(network)
             .withNetworkAliases("discovery-service")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> usersService = new GenericContainer<>("artarkatesoft/oauth20-resource-server")
+    static GenericContainer<?> usersService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-resource-server")
             .withNetwork(network)
             .withNetworkAliases("users-service")
             .withExposedPorts(8080)
@@ -69,7 +69,7 @@ class SpaJavascriptClientApplicationIT {
             .waitingFor(Wait.forHealthcheck());
 
     @Container
-    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/oauth20-api-gateway")
+    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-api-gateway")
             .withNetwork(network)
             .withNetworkAliases("gateway-service")
             .withExposedPorts(8080)
@@ -89,7 +89,7 @@ class SpaJavascriptClientApplicationIT {
             .dependsOn(keycloak);
 
     @Container
-    static GenericContainer<?> spaJavascriptClient = new GenericContainer<>("artarkatesoft/oauth20-spa-javascript-client")
+    static GenericContainer<?> spaJavascriptClient = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-spa-javascript-client")
             .withNetwork(network)
             .withNetworkAliases("spa-javascript-client")
             .withEnv(Map.of(
