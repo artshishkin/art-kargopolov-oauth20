@@ -3,7 +3,7 @@ version: '3'
 services:
 
   keycloak:
-    image: quay.io/keycloak/keycloak:13.0.1
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-latest}
     environment:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: Pa55w0rd
