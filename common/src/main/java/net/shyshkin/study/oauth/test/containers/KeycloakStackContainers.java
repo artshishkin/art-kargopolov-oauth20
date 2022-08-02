@@ -8,25 +8,34 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class KeycloakStackContainers extends GenericContainer<KeycloakStackContainers> {
+
+    private static final String ENV_FILE_PATH = "../docker-compose/.env";
 
     private static KeycloakStackContainers instance;
 
     private static boolean containerStarted = false;
 
+    private static Map<String, String> versions;
+
     private final Network network = Network.newNetwork();
 
-    private final PostgreSQLContainer<?> postgreSQL = new PostgreSQLContainer<>("postgres:13.1")
+    private final PostgreSQLContainer<?> postgreSQL = new PostgreSQLContainer<>("postgres:" + getVersion("POSTGRES_VERSION"))
             .withDatabaseName("keycloak")
             .withUsername("keycloak")
             .withPassword("password")
             .withNetwork(network)
             .withNetworkAliases("postgres");
 
-    private final GenericContainer<?> keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:13.0.1")
+    private final GenericContainer<?> keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:" + getVersion("KEYCLOAK_VERSION"))
             .withNetwork(network)
             .withNetworkAliases("keycloak")
             .withEnv(Map.of(
@@ -54,7 +63,7 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
             .withLogConsumer(new Slf4jLogConsumer(log))
             .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
 
-    private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/oauth20-user-legacy-service")
+    private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/oauth20-user-legacy-service:" + getVersion("SERVICE_VERSION"))
             .withNetwork(network)
             .withNetworkAliases("user-legacy-service")
             .waitingFor(Wait.forHealthcheck());
@@ -91,4 +100,29 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
     public void stop() {
         //do nothing, JVM handles shut down
     }
+
+    private static String getVersion(String versionKey) {
+        if (versions == null) {
+            versions = getEnvVariables();
+        }
+        return versions.get(versionKey);
+    }
+
+    private static Map<String, String> getEnvVariables() {
+        Properties properties = new Properties();
+        try (Reader reader = new FileReader(ENV_FILE_PATH)) {
+            properties.load(reader);
+        } catch (IOException e) {
+            log.error("", e);
+        }
+
+        Map<String, String> envVariables = properties.entrySet()
+                .stream()
+                .collect(Collectors.toMap(e -> e.getKey().toString(),
+                        e -> e.getValue().toString()));
+
+        log.debug("Docker-compose Environment variables: {}", envVariables);
+        return envVariables;
+    }
+
 }
