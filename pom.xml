@@ -39,6 +39,8 @@
         <docker.image.prefix>artarkatesoft</docker.image.prefix>
         <docker.image.name>oauth20-${project.artifactId}</docker.image.name>
         <keycloak.version>14.0.0</keycloak.version>
+        <webjars-jquery.version>3.5.1</webjars-jquery.version>
+        <mapstruct.version>1.4.2.Final</mapstruct.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
@@ -103,6 +105,16 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>net.shyshkin.study.oauth</groupId>
+                <artifactId>common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
@@ -150,6 +162,11 @@
                 <groupId>org.awaitility</groupId>
                 <artifactId>awaitility</artifactId>
                 <version>${awaitility.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>jquery</artifactId>
+                <version>${webjars-jquery.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
