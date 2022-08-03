@@ -31,7 +31,14 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./../../user-storage-provider/target/my-remote-user-storage-provider.jar:/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar
+      - ./../../user-storage-provider/target/my-remote-user-storage-provider.jar:/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar:ro
+      - ./export:/tmp/export:ro
+    command:
+      - "-b 0.0.0.0"
+      - "-Dkeycloak.migration.action=import"
+      - "-Dkeycloak.migration.provider=singleFile"
+      - "-Dkeycloak.migration.file=/tmp/export/realm-export.json"
+      - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
 
   user-legacy-service:
     image: artarkatesoft/oauth20-user-legacy-service:${SERVICE_VERSION:-latest}

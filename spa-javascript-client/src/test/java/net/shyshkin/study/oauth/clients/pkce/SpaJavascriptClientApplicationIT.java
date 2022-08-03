@@ -205,32 +205,21 @@ class SpaJavascriptClientApplicationIT {
         for (String buttonsId : directResourceServerButtonsIds) {
             log.debug("Clicking on `{}`", buttonsId);
             driver.findElement(By.id(buttonsId)).click();
-            Alert alert = driver.switchTo().alert();
-            assertThat(alert.getText()).isEqualTo("Working...");
-            alert.accept();
+            waitForAlert("Working...");
         }
 
         //click on buttons `Delete user by fake id` should show alert with "Deleted user with id: some_fake_id" message
         for (String buttonsId : List.of("deleteRegularUserBtn")) {
             log.debug("Clicking on `{}`", buttonsId);
             driver.findElement(By.id(buttonsId)).click();
-            Alert alert = driver.switchTo().alert();
-            assertThat(alert.getText()).isEqualTo("Deleted user with id: some_fake_id");
-            alert.accept();
+            waitForAlert("Deleted user with id: some_fake_id");
         }
 
         //click on buttons `Get Info From Resource Server `users` through Gateway` should show alert with "Working..." message
         for (String buttonsId : List.of("getInfoFromResourceServerThroughGatewayBtn")) {
             log.debug("Clicking on `{}`", buttonsId);
             driver.findElement(By.id(buttonsId)).click();
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            Alert alert = driver.switchTo().alert();
-            assertThat(alert.getText()).isEqualTo("Working...");
-            alert.accept();
+            waitForAlert("Working...");
         }
 
         //get Info From Resource Server through API Gateway should show alert with "Working..." message
@@ -243,18 +232,14 @@ class SpaJavascriptClientApplicationIT {
         for (String buttonsId : directResourceServerButtonsIds) {
             log.debug("GATEWAY: Clicking on `{}`", buttonsId);
             driver.findElement(By.id("getInfoFromResourceServerDirectBtn")).click();
-            Alert alert = driver.switchTo().alert();
-            assertThat(alert.getText()).isEqualTo("Working...");
-            alert.accept();
+            waitForAlert("Working...");
         }
 
         //delete user through API Gateway should show alert with "Deleted user with id: some_fake_id" message
         for (String buttonsId : List.of("deleteRegularUserBtn")) {
             log.debug("GATEWAY: Clicking on `{}`", buttonsId);
             driver.findElement(By.id(buttonsId)).click();
-            Alert alert = driver.switchTo().alert();
-            assertThat(alert.getText()).isEqualTo("Deleted user with id: some_fake_id");
-            alert.accept();
+            waitForAlert("Deleted user with id: some_fake_id");
         }
 
 
@@ -286,6 +271,17 @@ class SpaJavascriptClientApplicationIT {
                         lastPageContent.set(pageSource);
                     }
                     assertAll(executableList);
+                });
+    }
+
+    private void waitForAlert(String expectedMessage) {
+        await()
+                .timeout(5, TimeUnit.SECONDS)
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    Alert alert = driver.switchTo().alert();
+                    assertThat(alert.getText()).isEqualTo(expectedMessage);
+                    alert.accept();
                 });
     }
 
