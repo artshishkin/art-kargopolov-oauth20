@@ -5,10 +5,10 @@ RUN java -Djarmode=layertools -jar ${project.build.finalName}.jar extract
 
 FROM openjdk:11-jre-slim
 
-RUN apt update && apt install -y curl
+RUN apt update && apt install -y curl && apt install -y jq
 
-HEALTHCHECK  --interval=5s --timeout=2s --start-period=10s --retries=5 \
-    CMD curl -f localhost:8080/actuator/health || false
+HEALTHCHECK  --interval=5s --timeout=2s --start-period=10s --retries=12 \
+    CMD curl -f localhost:8080/actuator/health | jq --exit-status -n 'inputs | if has("status") then .status=="UP" else false end' > /dev/null || exit 1
 
 LABEL PROJECT_NAME=${project.artifactId} \
       PROJECT=${project.id}
