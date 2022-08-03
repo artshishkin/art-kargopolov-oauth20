@@ -277,7 +277,7 @@ class SpaJavascriptClientApplicationIT {
     private void waitForAlert(String expectedMessage) {
         await()
                 .timeout(5, TimeUnit.SECONDS)
-                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .pollInterval(100, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
                     Alert alert = driver.switchTo().alert();
                     assertThat(alert.getText()).isEqualTo(expectedMessage);
