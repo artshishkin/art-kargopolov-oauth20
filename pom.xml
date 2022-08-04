@@ -42,6 +42,10 @@
         <webjars-jquery.version>3.6.0</webjars-jquery.version>
         <mapstruct.version>1.5.1.Final</mapstruct.version>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
+        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
+        <docker-maven-plugin.version>0.40.2</docker-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -188,7 +192,7 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.33.0</version>
+                <version>${docker-maven-plugin.version}</version>
                 <configuration>
                     <verbose>true</verbose>
                     <containerNamePattern>%a</containerNamePattern>
@@ -213,7 +217,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. JaCoCo-->
                     <argLine>${surefireArgLine}</argLine>
@@ -222,7 +226,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>${maven-failsafe-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -239,7 +243,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.5</version>
+                <version>${jacoco-maven-plugin.version}</version>
                 <executions>
                     <!--
                         Prepares the property pointing to the JaCoCo runtime agent which
