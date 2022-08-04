@@ -1,0 +1,132 @@
+version: '3.8'
+
+volumes:
+  postgres_data:
+    driver: local
+
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-latest}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+
+# Open http://localhost:8080/auth and login as user 'admin' with password 'Pa55w0rd'.
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-latest}
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: Pa55w0rd
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    volumes:
+      - ./../../user-storage-provider/target/my-remote-user-storage-provider.jar:/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar:ro
+      - ./../keycloak-postgres/export:/tmp/export:ro
+    command:
+      - "-b 0.0.0.0"
+      - "-Dkeycloak.migration.action=import"
+      - "-Dkeycloak.migration.provider=singleFile"
+      - "-Dkeycloak.migration.file=/tmp/export/realm-export.json"
+      - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
+
+  user-legacy-service:
+    image: artarkatesoft/art-kargopolov-oauth20-user-legacy-service:${SERVICE_VERSION:-latest}
+    depends_on:
+      - keycloak
+
+  discovery-service:
+    image: artarkatesoft/art-kargopolov-oauth20-discovery-service:${SERVICE_VERSION:-latest}
+    ports:
+      - "8765:8080"
+    depends_on:
+      - keycloak
+
+  gateway-service:
+    image: artarkatesoft/art-kargopolov-oauth20-api-gateway:${SERVICE_VERSION:-latest}
+    ports:
+      - "8090:8080"
+    environment:
+      "eureka.client.enabled": "true"
+      "spring.profiles.active": "local"
+      "discovery.service.uri": "http://discovery-service:8080"
+      "eureka.client.registry-fetch-interval-seconds": 1
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+
+  users-service:
+    image: artarkatesoft/art-kargopolov-oauth20-resource-server:${SERVICE_VERSION:-latest}
+    ports:
+      - "8081:8080"
+    environment:
+      "eureka.client.enabled": "true"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+
+  albums-service:
+    image: artarkatesoft/art-kargopolov-oauth20-albums-service:${SERVICE_VERSION:-latest}
+    ports:
+      - "8082:8080"
+    environment:
+      "eureka.client.enabled": "true"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+
+  photos-service:
+    image: artarkatesoft/art-kargopolov-oauth20-photos-service:${SERVICE_VERSION:-latest}
+    ports:
+      - "8083:8080"
+    environment:
+      "eureka.client.enabled": "true"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+
+  photo-app-web-client:
+    image: artarkatesoft/art-kargopolov-oauth20-photo-app-web-client:${SERVICE_VERSION:-latest}
+    ports:
+      - "8049:8080"
+    environment:
+#      "spring.profiles.active": local
+      "app.redirect.host.uri": http://localhost:8050
+      "app.oauth.uri": http://localhost:8080
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+
+  social-login-example:
+    image: artarkatesoft/art-kargopolov-oauth20-social-login:${SERVICE_VERSION:-latest}
+    ports:
+      - "8051:8080"
+    environment:
+      "spring.profiles.active": keycloak
+      "app.oauth.uri": http://keycloak:8080
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+
+  spa-javascript-client:
+    image: artarkatesoft/art-kargopolov-oauth20-spa-javascript-client:${SERVICE_VERSION:-latest}
+    ports:
+      - "8181:8080"
+    environment:
+      "app.oauth.uri": http://localhost:8080
+      "app.redirect.host.uri": http://localhost:8181
+      "app.gateway.uri": http://localhost:8090
+      "app.users-api.uri": http://localhost:8081
+    depends_on:
+      gateway-service:
+        condition: service_healthy
