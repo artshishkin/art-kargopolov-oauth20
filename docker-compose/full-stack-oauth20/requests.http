@@ -1,0 +1,88 @@
+# To get JWT access token we can use
+# 1 Authorization code Grant Type
+# or
+# 2 Password Grant Type
+
+
+# 1 Authorization code Grant Type
+### Get Authorization code - manually in browser
+GET http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth?response_type=code&client_id=photo-app-code-flow-client&scope=openid%20profile&state=jskd879sdkj&redirect_uri=http://localhost:8083/callback
+Accept: */*
+
+# Sign In using
+# username = shyshkin.art
+# password = password_art_1
+
+# Copy code from redirect URI
+
+### Get Access token
+POST http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&client_id=photo-app-code-flow-client&client_secret=ee68a49e-5ac6-4673-9465-51e53de3fb0e&redirect_uri=http://localhost:8083/callback&code=24758b16-93aa-47fc-b774-ef7c4632316c.82bbcab8-2848-419f-8616-adfa21645770.5ca38048-af08-42e3-8bef-fa42c2956a9c
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### 2 Password Grant Type - Get Access Token
+POST http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=photo-app-code-flow-client&client_secret=ee68a49e-5ac6-4673-9465-51e53de3fb0e&scope=openid profile&username=shyshkin.art&password=password_art_1
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### Get Access Token for users from Legacy Storage - user-legacy-service - role DEVELOPER
+POST http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=photo-app-code-flow-client&client_secret=ee68a49e-5ac6-4673-9465-51e53de3fb0e&scope=openid profile&username=kate_developer@test.com&password=kate
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### Get Access Token for users from Legacy Storage - user-legacy-service - role ADMIN
+POST http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=photo-app-code-flow-client&client_secret=ee68a49e-5ac6-4673-9465-51e53de3fb0e&scope=openid profile&username=arina_admin@test.com&password=arina
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### Get Access Token for users from Legacy Storage - user-legacy-service - role USER
+POST http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=photo-app-code-flow-client&client_secret=ee68a49e-5ac6-4673-9465-51e53de3fb0e&scope=openid profile&username=test2@test.com&password=art
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### Photos Service Directly
+GET http://localhost:8083/photos
+Authorization: Bearer {{access_token}}
+
+### Photos Service through API Gateway
+GET http://localhost:8090/photos
+Authorization: Bearer {{access_token}}
+
+### Albums Service Directly
+GET http://localhost:8082/albums
+Authorization: Bearer {{access_token}}
+
+### Albums Service through API Gateway
+GET http://localhost:8090/albums
+Authorization: Bearer {{access_token}}
+
+### Users Service Directly
+GET http://localhost:8081/users/status/check
+Authorization: Bearer {{access_token}}
+
+### Users Service through API Gateway
+GET http://localhost:8090/users/status/check
+Authorization: Bearer {{access_token}}
+
+### Users Service through API Gateway - need role ADMIN
+GET http://localhost:8090/users/role/admin/status/check
+Authorization: Bearer {{access_token}}
+
+### Users Service through API Gateway - need role ADMIN or USER (no Developer)
+GET http://localhost:8090/users/role/no_developer/status/check
+Authorization: Bearer {{access_token}}
