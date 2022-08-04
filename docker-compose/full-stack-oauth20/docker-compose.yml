@@ -81,6 +81,7 @@ services:
       - "8082:8080"
     environment:
       "eureka.client.enabled": "true"
+      "logging.level.net.shyshkin": debug
     depends_on:
       discovery-service:
         condition: service_healthy
@@ -98,11 +99,10 @@ services:
   photo-app-web-client:
     image: artarkatesoft/art-kargopolov-oauth20-photo-app-web-client:${SERVICE_VERSION:-latest}
     ports:
-      - "8049:8080"
+      - "8050:8080"
     environment:
-#      "spring.profiles.active": local
       "app.redirect.host.uri": http://localhost:8050
-      "app.oauth.uri": http://localhost:8080
+      "app.oauth.uri": http://host.docker.internal:8080
     depends_on:
       gateway-service:
         condition: service_healthy
