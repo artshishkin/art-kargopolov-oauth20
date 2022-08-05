@@ -103,7 +103,7 @@ class PhotoAppWebClientApplicationTest {
             .dependsOn(keycloak, gatewayService)
             .withLogConsumer(new Slf4jLogConsumer(log))
             .withStartupTimeout(Duration.ofSeconds(90))
-            .waitingFor(Wait.forLogMessage(".*Completed initialization in.*\\n", 1));
+            .waitingFor(Wait.forHealthcheck());
 
     RemoteWebDriver driver;
 
