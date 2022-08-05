@@ -42,9 +42,9 @@ import static org.awaitility.Awaitility.await;
         "logging.level.net.shyshkin=debug",
         "app.oauth.uri=http://${OAUTH_HOST}:${OAUTH_PORT}"
 })
-@ContextConfiguration(initializers = PhotoAppWebClientApplicationIT.Initializer.class)
+@ContextConfiguration(initializers = PhotoAppWebClientApplicationTest.Initializer.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class PhotoAppWebClientApplicationIT {
+class PhotoAppWebClientApplicationTest {
 
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
     public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
