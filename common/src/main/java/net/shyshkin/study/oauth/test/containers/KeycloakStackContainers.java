@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
@@ -60,7 +59,7 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
             .withCopyFileToContainer(MountableFile.forHostPath("../user-storage-provider/target/my-remote-user-storage-provider.jar"),
                     "/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar")
             .dependsOn(postgreSQL)
-            .withLogConsumer(new Slf4jLogConsumer(log))
+//            .withLogConsumer(new Slf4jLogConsumer(log))
             .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
 
     private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-user-legacy-service:" + getVersion("SERVICE_VERSION"))
