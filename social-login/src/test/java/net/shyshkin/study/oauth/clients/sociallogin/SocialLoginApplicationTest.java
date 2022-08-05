@@ -47,9 +47,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
         "app.oauth.uri=http://${OAUTH_HOST}:${OAUTH_PORT}"
 })
 @ActiveProfiles("keycloak")
-@ContextConfiguration(initializers = SocialLoginApplicationIT.Initializer.class)
+@ContextConfiguration(initializers = SocialLoginApplicationTest.Initializer.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class SocialLoginApplicationIT {
+class SocialLoginApplicationTest {
 
     @Container
     static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();

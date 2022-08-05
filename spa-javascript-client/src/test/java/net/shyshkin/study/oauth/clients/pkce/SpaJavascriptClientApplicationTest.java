@@ -39,8 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
         "logging.level.net.shyshkin=debug",
         "app.oauth.uri=http://${OAUTH_HOST}:${OAUTH_PORT}"
 })
-@ContextConfiguration(initializers = SpaJavascriptClientApplicationIT.Initializer.class)
-class SpaJavascriptClientApplicationIT {
+@ContextConfiguration(initializers = SpaJavascriptClientApplicationTest.Initializer.class)
+class SpaJavascriptClientApplicationTest {
 
     public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
     public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
