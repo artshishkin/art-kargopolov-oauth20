@@ -10,6 +10,7 @@ import org.testcontainers.utility.MountableFile;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -60,7 +61,8 @@ public class KeycloakStackContainers extends GenericContainer<KeycloakStackConta
                     "/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar")
             .dependsOn(postgreSQL)
 //            .withLogConsumer(new Slf4jLogConsumer(log))
-            .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1));
+            .waitingFor(Wait.forLogMessage(".*Admin console listening on.*\\n", 1)
+                    .withStartupTimeout(Duration.ofSeconds(120)));
 
     private final GenericContainer<?> userLegacyService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-user-legacy-service:" + getVersion("SERVICE_VERSION"))
             .withNetwork(network)

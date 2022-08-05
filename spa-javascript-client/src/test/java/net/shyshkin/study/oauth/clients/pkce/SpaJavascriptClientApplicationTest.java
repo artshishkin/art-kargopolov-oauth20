@@ -256,7 +256,7 @@ class SpaJavascriptClientApplicationTest {
         AtomicLong start = new AtomicLong(System.currentTimeMillis());
 
         await()
-                .timeout(5, TimeUnit.SECONDS)
+                .timeout(10, TimeUnit.SECONDS)
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
 
@@ -279,7 +279,7 @@ class SpaJavascriptClientApplicationTest {
 
     private void waitForAlert(String expectedMessage) {
         await()
-                .timeout(5, TimeUnit.SECONDS)
+                .timeout(10, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
                     Alert alert = driver.switchTo().alert();

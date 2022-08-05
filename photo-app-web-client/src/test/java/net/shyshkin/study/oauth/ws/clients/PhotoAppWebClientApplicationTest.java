@@ -102,8 +102,7 @@ class PhotoAppWebClientApplicationTest {
             .withExposedPorts(8080)
             .dependsOn(keycloak, gatewayService)
             .withLogConsumer(new Slf4jLogConsumer(log))
-            .withStartupTimeout(Duration.ofSeconds(90))
-            .waitingFor(Wait.forHealthcheck());
+            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(120)));
 
     RemoteWebDriver driver;
 
@@ -135,7 +134,7 @@ class PhotoAppWebClientApplicationTest {
         AtomicLong start = new AtomicLong(System.currentTimeMillis());
 
         await()
-                .timeout(5, TimeUnit.SECONDS)
+                .timeout(10, TimeUnit.SECONDS)
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
 
