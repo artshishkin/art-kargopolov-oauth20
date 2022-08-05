@@ -15,6 +15,8 @@ public class WebSecurity {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors()
+                .and()
                 .authorizeRequests((authz) -> authz
                         .antMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         .antMatchers(HttpMethod.GET, "/actuator/info").permitAll()
