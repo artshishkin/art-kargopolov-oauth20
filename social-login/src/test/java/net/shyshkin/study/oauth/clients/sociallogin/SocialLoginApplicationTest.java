@@ -78,7 +78,7 @@ class SocialLoginApplicationTest {
             .withExposedPorts(8080)
             .dependsOn(keycloak)
             .withLogConsumer(new Slf4jLogConsumer(log))
-            .waitingFor(Wait.forLogMessage(".*Completed initialization in.*\\n", 1));
+            .waitingFor(Wait.forHealthcheck());
 
     RemoteWebDriver driver;
 
