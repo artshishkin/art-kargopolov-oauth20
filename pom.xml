@@ -28,6 +28,7 @@
         <module>common</module>
         <module>user-storage-provider</module>
         <module>user-legacy-service</module>
+        <module>new-spring-authorization-server</module>
     </modules>
 
     <properties>
@@ -46,6 +47,7 @@
         <maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <docker-maven-plugin.version>0.40.2</docker-maven-plugin.version>
+        <spring-auth-server.version>0.3.1</spring-auth-server.version>
     </properties>
 
     <dependencies>
@@ -124,6 +126,11 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-oauth2-authorization-server</artifactId>
+                <version>${spring-auth-server.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
