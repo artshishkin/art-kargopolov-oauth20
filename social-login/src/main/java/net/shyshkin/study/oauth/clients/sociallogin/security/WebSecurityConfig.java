@@ -2,15 +2,16 @@ package net.shyshkin.study.oauth.clients.sociallogin.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Slf4j
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final String postLogoutRedirectUri;
@@ -23,8 +24,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         this.postLogoutRedirectUri = appRedirectHostUri;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests((requests) -> requests
                 .antMatchers("/index", "/", "/index.html").permitAll()
                 .antMatchers("/actuator/health").permitAll()
@@ -38,6 +39,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID");
+        return http.build();
     }
 
     private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
