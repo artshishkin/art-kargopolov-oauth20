@@ -7,3 +7,12 @@ Accept: */*
 # password = art_pass
 
 # Copy code from redirect URI
+
+### Get Access token - we choose ClientAuthenticationMethod.CLIENT_SECRET_BASIC
+POST http://127.0.0.1:8000/oauth2/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic client1 myClientSecretValue
+
+grant_type=authorization_code&redirect_uri=http://127.0.0.1:8080/authorized&code=1c5s_qHF9UqofsqvP9Y4YPPiuagLYZPj_d0CCHVaucCHAY6-25tklGj0udCx4dC4bWAaHyT8Ml06YmqC41-qaqbiW__q_ofodvC4DfFY2GhWkI-p6iNd8mpYrxzY9Fz6
+
+> {% client.global.set("access_token", response.body.access_token); %}
