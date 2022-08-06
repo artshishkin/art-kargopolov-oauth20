@@ -120,10 +120,12 @@ class PhotoAppWebClientApplicationTest {
         String url = "http://photo-app-webclient:8080/albums";
 
         //when
+        log.debug("Window handlers start: {}", driver.getWindowHandles());
         driver.get(url);
 
         String expectedTitle = "Sign in to katarinazart";
         assertThat(driver.getTitle()).isEqualTo(expectedTitle);
+        log.debug("Window handlers sign in url: {}", driver.getWindowHandles());
 
         //then
         signIn(RESOURCE_OWNER_USERNAME, RESOURCE_OWNER_PASSWORD);
@@ -150,6 +152,7 @@ class PhotoAppWebClientApplicationTest {
                         lastUrl.set(currentUrl);
                         lastPageContent.set(pageSource);
                     }
+                    log.debug("Window handlers: {}", driver.getWindowHandles());
                     assertThat(driver.getTitle()).isEqualTo("Albums Page");
                     assertThat(driver.findElement(By.tagName("h1")).getText()).isEqualTo("Albums page");
 
