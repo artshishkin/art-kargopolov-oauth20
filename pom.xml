@@ -29,6 +29,7 @@
         <module>user-storage-provider</module>
         <module>user-legacy-service</module>
         <module>new-spring-authorization-server</module>
+        <module>orders-resource-server</module>
     </modules>
 
     <properties>

@@ -1,0 +1,20 @@
+server:
+  port: 8091
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth-server:8000
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8000
