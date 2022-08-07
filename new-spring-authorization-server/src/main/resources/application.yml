@@ -1,2 +1,6 @@
 server:
   port: 8000
+
+logging:
+  level:
+    net.shyshkin: debug
