@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.given;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Slf4j
@@ -278,7 +279,9 @@ class SpaJavascriptClientApplicationTest {
     }
 
     private void waitForAlert(String expectedMessage) {
-        await()
+        given()
+                .ignoreExceptions()
+                .await()
                 .timeout(10, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
