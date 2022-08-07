@@ -1,5 +1,6 @@
 package net.shyshkin.study.oauth.spring.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebResponse;
@@ -12,7 +13,10 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -35,11 +39,20 @@ class NewSpringAuthorizationServerApplicationTest {
             .queryParam("state", "some-state")
             .queryParam("redirect_uri", REDIRECT_URI)
             .toUriString();
+
+    private static final String TOKEN_REQUEST_URL = "/oauth2/token";
+
     private static final String DEFAULT_USERNAME = "art";
     private static final String CORRECT_PASSWORD = "art_pass";
 
+    private static final String CLIENT_ID = "client1";
+    private static final String CLIENT_PASSWORD = "myClientSecretValue";
+
     @Autowired
     private WebClient webClient;
+
+    @Autowired
+    TestRestTemplate restTemplate;
 
     private static String authorizationCode;
 
@@ -106,6 +119,43 @@ class NewSpringAuthorizationServerApplicationTest {
 
         log.debug("Code: {}", authorizationCode);
 
+    }
+
+    @Test
+    @Order(50)
+    public void whenAskingForATokenWithAuthCodeThenReturnsToken() throws IOException {
+
+        //given
+        if (authorizationCode == null) whenLoggingInAndRequestingTokenThenRedirectsToClientApplication();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setBasicAuth(CLIENT_ID, CLIENT_PASSWORD);
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+
+        map.add("grant_type", "authorization_code");
+        map.add("redirect_uri", REDIRECT_URI);
+        map.add("code", authorizationCode);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
+
+        //when
+        ResponseEntity<JsonNode> response = restTemplate.postForEntity(TOKEN_REQUEST_URL, request, JsonNode.class);
+
+        //then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        JsonNode responseBody = response.getBody();
+        log.debug("Response: {}", responseBody);
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.at("/access_token").asText()).isNotEmpty();
+        assertThat(responseBody.at("/refresh_token").asText()).isNotEmpty();
+        assertThat(responseBody.at("/scope").asText()).contains("read", "openid");
+        assertThat(responseBody.at("/id_token").asText()).isNotEmpty();
+        assertThat(responseBody.at("/token_type").asText()).isEqualTo("Bearer");
+        assertThat(responseBody.at("/expires_in").asInt()).isGreaterThan(0).isLessThanOrEqualTo(300);
+
+        authorizationCode = null;
     }
 
     private String extractCode(String location) {
