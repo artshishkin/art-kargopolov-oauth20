@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -32,18 +31,16 @@ import java.util.UUID;
 public class AuthorizationServerConfiguration {
 
     @Bean
-    RegisteredClientRepository registeredClientRepository() {
+    RegisteredClientRepository registeredClientRepository(AuthServerConfigData config) {
         RegisteredClient registeredClient = RegisteredClient
                 .withId(UUID.randomUUID().toString())
-                .clientId("client1")
-                .clientSecret("{noop}myClientSecretValue")
+                .clientId(config.getClientId())
+                .clientSecret(config.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/users-client-oidc")
-                .redirectUri("http://127.0.0.1:8080/authorized")
-                .scope(OidcScopes.OPENID)
-                .scope("read")
+                .redirectUris(uris -> uris.addAll(config.getRedirectUris()))
+                .scopes(scopes -> scopes.addAll(config.getScopes()))
 //                .clientSettings(ClientSettings.builder()
 //                        .requireAuthorizationConsent(true) //PKCE
 //                        .build())
@@ -63,9 +60,9 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    ProviderSettings providerSettings() {
+    ProviderSettings providerSettings(AuthServerConfigData config) {
         return ProviderSettings.builder()
-                .issuer("http://auth-server:8000") //auth-server is alias for 127.0.0.1
+                .issuer(config.getProviderIssuer()) //auth-server is alias for 127.0.0.1
                 //it needs to set up on localhost
                 //for Linux: sudo vi /etc/hosts -> i -> insert custom domain name: `127.0.0.1    auth-server`
                 //for Windows: modify c:\Windows\System32\drivers\etc\hosts -> insert custom domain name: `127.0.0.1    auth-server`
