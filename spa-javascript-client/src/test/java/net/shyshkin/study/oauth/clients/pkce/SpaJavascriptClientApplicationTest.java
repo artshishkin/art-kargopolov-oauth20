@@ -282,7 +282,9 @@ class SpaJavascriptClientApplicationTest {
                 .timeout(10, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .untilAsserted(() -> {
+                    log.debug("Waiting for alert...");
                     Alert alert = driver.switchTo().alert();
+                    log.debug("Alert: {}", alert);
                     assertThat(alert.getText()).isEqualTo(expectedMessage);
                     alert.accept();
                 });

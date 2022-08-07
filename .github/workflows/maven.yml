@@ -5,7 +5,7 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ master, docker-image-name ]
+    branches: [ master, docker-image-name, git-actions-spa ]
   pull_request:
     branches: [ master ]
 
