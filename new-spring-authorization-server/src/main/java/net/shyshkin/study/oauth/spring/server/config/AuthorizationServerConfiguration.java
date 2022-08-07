@@ -25,14 +25,24 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Configuration
 public class AuthorizationServerConfiguration {
 
     @Bean
     RegisteredClientRepository registeredClientRepository(AuthServerConfigData config) {
-        RegisteredClient registeredClient = RegisteredClient
+        List<RegisteredClient> registrations = config.getClients()
+                .stream()
+                .map(this::registeredClient)
+                .collect(Collectors.toList());
+        return new InMemoryRegisteredClientRepository(registrations);
+    }
+
+    private RegisteredClient registeredClient(AuthServerConfigData.Client config) {
+        return RegisteredClient
                 .withId(UUID.randomUUID().toString())
                 .clientId(config.getClientId())
                 .clientSecret(config.getClientSecret())
@@ -45,7 +55,6 @@ public class AuthorizationServerConfiguration {
 //                        .requireAuthorizationConsent(true) //PKCE
 //                        .build())
                 .build();
-        return new InMemoryRegisteredClientRepository(registeredClient);
     }
 
     @Bean
@@ -62,7 +71,7 @@ public class AuthorizationServerConfiguration {
     @Bean
     ProviderSettings providerSettings(AuthServerConfigData config) {
         return ProviderSettings.builder()
-                .issuer(config.getProviderIssuer()) //auth-server is alias for 127.0.0.1
+                .issuer(config.getProvider().getIssuer()) //auth-server is alias for 127.0.0.1
                 //it needs to set up on localhost
                 //for Linux: sudo vi /etc/hosts -> i -> insert custom domain name: `127.0.0.1    auth-server`
                 //for Windows: modify c:\Windows\System32\drivers\etc\hosts -> insert custom domain name: `127.0.0.1    auth-server`

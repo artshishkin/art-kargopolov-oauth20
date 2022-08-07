@@ -6,10 +6,12 @@ logging:
     net.shyshkin: debug
 
 app.auth-server:
-  provider-issuer: "http://auth-server:8000"
-  client-id: client1
-  client-secret: "{noop}myClientSecretValue"
-  redirect-uris:
-    - "http://127.0.0.1:8080/login/oauth2/code/users-client-oidc"
-    - "http://127.0.0.1:8080/authorized"
-  scopes: openid,read
+  provider:
+    issuer: "http://auth-server:8000"
+  clients:
+    - client-id: client1
+      client-secret: "{noop}myClientSecretValue"
+      redirect-uris:
+        - "http://127.0.0.1:8080/login/oauth2/code/users-client-oidc"
+        - "http://127.0.0.1:8080/authorized"
+      scopes: openid,read
