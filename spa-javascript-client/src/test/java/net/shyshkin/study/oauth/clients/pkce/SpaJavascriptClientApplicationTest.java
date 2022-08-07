@@ -1,5 +1,6 @@
 package net.shyshkin.study.oauth.clients.pkce;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,8 @@ class SpaJavascriptClientApplicationTest {
     static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
 
     static Network network = keycloakStackContainers.getStackNetwork();
+
+    ObjectMapper objectMapper = new ObjectMapper();
 
     @Container
     static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")
@@ -216,7 +219,7 @@ class SpaJavascriptClientApplicationTest {
             waitForAlert("Deleted user with id: some_fake_id");
         }
 
-        boolean skipTestsWithGateway = true;
+        boolean skipTestsWithGateway = false;
         if (skipTestsWithGateway) return;
 
         //click on buttons `Get Info From Resource Server `users` through Gateway` should show alert with "Working..." message
@@ -287,7 +290,7 @@ class SpaJavascriptClientApplicationTest {
                 .untilAsserted(() -> {
                     log.debug("Waiting for alert...");
                     Alert alert = driver.switchTo().alert();
-                    log.debug("Alert: {}", alert);
+                    log.debug("Alert: {}", objectMapper.writeValueAsString(alert));
                     assertThat(alert.getText()).isEqualTo(expectedMessage);
                     alert.accept();
                 });
