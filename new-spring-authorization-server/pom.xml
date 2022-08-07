@@ -43,6 +43,11 @@
             <artifactId>htmlunit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.shyshkin.study.oauth</groupId>
+            <artifactId>common</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
