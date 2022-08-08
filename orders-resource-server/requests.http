@@ -1,0 +1,11 @@
+# 1. Start new-spring-authorization-server
+# 2. Start orders-resource-server
+
+### Get orders without access token - expected 401 Unauthorized
+GET http://localhost:8091/orders
+Accept: application/json
+
+### Get orders without token - expected 200 Ok - first get access_token using /new-spring-authorization-server/requests.http
+GET http://localhost:8091/orders
+Accept: application/json
+Authorization: Bearer {{access_token}}
