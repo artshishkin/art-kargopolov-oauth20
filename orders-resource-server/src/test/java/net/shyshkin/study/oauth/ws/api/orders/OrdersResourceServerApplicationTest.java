@@ -105,10 +105,6 @@ class OrdersResourceServerApplicationTest {
     }
 
     @Test
-    void contextLoads() {
-    }
-
-    @Test
     void whenRequestingOrdersEndpointWithoutTokenThenShouldReturn401Unauthorized() {
 
         //when
@@ -117,6 +113,19 @@ class OrdersResourceServerApplicationTest {
         //then
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(responseEntity.getBody()).isNullOrEmpty();
+
+    }
+
+    @Test
+    void whenRequestingHealthEndpointWithoutTokenThenShouldReturn200() {
+
+        //when
+        var responseEntity = testRestTemplate.getForEntity("/actuator/health", JsonNode.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+        assertThat(responseEntity.getBody().at("/status").asText()).isEqualTo("UP");
 
     }
 

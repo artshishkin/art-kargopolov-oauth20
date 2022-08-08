@@ -9,3 +9,8 @@ Accept: application/json
 GET http://localhost:8091/orders
 Accept: application/json
 Authorization: Bearer {{access_token}}
+
+### Get healthcheck endpoint without access token - expected 200 OK
+GET http://localhost:8091/actuator/health
+Accept: application/json
+
