@@ -15,3 +15,12 @@ app.auth-server:
         - "http://127.0.0.1:8080/login/oauth2/code/users-client-oidc"
         - "http://127.0.0.1:8080/authorized"
       scopes: openid,read
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+app.auth-server:
+  provider:
+    issuer: "http://localhost:8000"
