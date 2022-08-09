@@ -1,0 +1,21 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Orders</title>
+</head>
+<body>
+<h1>Orders page</h1>
+
+<div th:if="${orders.empty}">
+    <div>No orders found</div>
+</div>
+
+<div th:each="order : ${orders}">
+    <p><span th:text="${order.orderId}"></span></p>
+</div>
+
+
+</body>
+</html>

@@ -30,6 +30,7 @@
         <module>user-legacy-service</module>
         <module>new-spring-authorization-server</module>
         <module>orders-resource-server</module>
+        <module>orders-web-oauth-client</module>
     </modules>
 
     <properties>
