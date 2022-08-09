@@ -33,6 +33,7 @@ import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -79,10 +80,6 @@ class NewSpringAuthorizationServerApplicationTest {
         this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(true);
         this.webClient.getOptions().setRedirectEnabled(true);
         this.webClient.getCookieManager().clearCookies();    // log out
-    }
-
-    @Test
-    void contextLoads() {
     }
 
     @Test
@@ -209,6 +206,31 @@ class NewSpringAuthorizationServerApplicationTest {
         Map<String, Object> responseMap = objectMapper.readValue(responseJson, TOKEN_RESPONSE_TYPE_REFERENCE);
         log.debug("Response body as Map: {}", responseMap);
         authorizationCode = null;
+    }
+
+    @Test
+    void getOpenIdConfiguration() {
+
+        //when
+        ResponseEntity<JsonNode> responseEntity = restTemplate
+                .withBasicAuth(CLIENT_ID, CLIENT_PASSWORD)
+                .getForEntity("/.well-known/openid-configuration", JsonNode.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        JsonNode json = responseEntity.getBody();
+        assertThat(json).isNotNull();
+        assertAll(
+                () -> assertThat(json.at("/issuer").asText()).isEqualTo("http://auth-server:8000"),
+                () -> assertThat(json.at("/authorization_endpoint").asText()).isEqualTo("http://auth-server:8000/oauth2/authorize"),
+                () -> assertThat(json.at("/token_endpoint").asText()).isEqualTo("http://auth-server:8000/oauth2/token"),
+                () -> assertThat(json.at("/jwks_uri").asText()).isEqualTo("http://auth-server:8000/oauth2/jwks"),
+                () -> assertThat(json.at("/userinfo_endpoint").asText()).isEqualTo("http://auth-server:8000/userinfo"),
+                () -> assertThat(json.at("/grant_types_supported/0").asText()).isIn("authorization_code", "client_credentials", "refresh_token"),
+                () -> assertThat(json.at("/grant_types_supported/1").asText()).isIn("authorization_code", "client_credentials", "refresh_token"),
+                () -> assertThat(json.at("/grant_types_supported/2").asText()).isIn("authorization_code", "client_credentials", "refresh_token"),
+                () -> assertThat(json.at("/scopes_supported/0").asText()).isEqualTo("openid")
+        );
     }
 
     private String extractCode(String location) {

@@ -25,6 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -167,6 +168,35 @@ class NewSpringAuthorizationServerApplicationDockerIT {
         assertThat(responseBody.at("/expires_in").asInt()).isGreaterThan(0).isLessThanOrEqualTo(300);
 
         authorizationCode = null;
+    }
+
+    @Test
+    void getOpenIdConfiguration() {
+
+        //given
+        RequestEntity<Void> requestEntity = RequestEntity.get("/.well-known/openid-configuration")
+                .headers(h -> h.setBasicAuth(CLIENT_ID, CLIENT_PASSWORD))
+                .build();
+
+        //when
+        ResponseEntity<JsonNode> responseEntity = restTemplate
+                .exchange(requestEntity, JsonNode.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        JsonNode json = responseEntity.getBody();
+        assertThat(json).isNotNull();
+        assertAll(
+                () -> assertThat(json.at("/issuer").asText()).isEqualTo("http://auth-server:8000"),
+                () -> assertThat(json.at("/authorization_endpoint").asText()).isEqualTo("http://auth-server:8000/oauth2/authorize"),
+                () -> assertThat(json.at("/token_endpoint").asText()).isEqualTo("http://auth-server:8000/oauth2/token"),
+                () -> assertThat(json.at("/jwks_uri").asText()).isEqualTo("http://auth-server:8000/oauth2/jwks"),
+                () -> assertThat(json.at("/userinfo_endpoint").asText()).isEqualTo("http://auth-server:8000/userinfo"),
+                () -> assertThat(json.at("/grant_types_supported/0").asText()).isIn("authorization_code", "client_credentials", "refresh_token"),
+                () -> assertThat(json.at("/grant_types_supported/1").asText()).isIn("authorization_code", "client_credentials", "refresh_token"),
+                () -> assertThat(json.at("/grant_types_supported/2").asText()).isIn("authorization_code", "client_credentials", "refresh_token"),
+                () -> assertThat(json.at("/scopes_supported/0").asText()).isEqualTo("openid")
+        );
     }
 
     private String extractCode(String location) {
