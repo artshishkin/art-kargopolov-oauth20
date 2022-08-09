@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -11,6 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -30,7 +32,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Configuration
+@RequiredArgsConstructor
 public class AuthorizationServerConfiguration {
+
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     RegisteredClientRepository registeredClientRepository(AuthServerConfigData config) {
@@ -45,7 +50,7 @@ public class AuthorizationServerConfiguration {
         return RegisteredClient
                 .withId(UUID.randomUUID().toString())
                 .clientId(config.getClientId())
-                .clientSecret(config.getClientSecret())
+                .clientSecret(passwordEncoder.encode(config.getClientSecret()))
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)

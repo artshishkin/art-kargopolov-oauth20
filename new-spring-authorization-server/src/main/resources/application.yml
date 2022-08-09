@@ -10,7 +10,7 @@ app.auth-server:
     issuer: "http://auth-server:8000"
   clients:
     - client-id: client1
-      client-secret: "{noop}myClientSecretValue"
+      client-secret: ${CLIENT_SECRET:myClientSecretValue}
       redirect-uris:
         - "http://127.0.0.1:8080/login/oauth2/code/users-client-oidc"
         - "http://127.0.0.1:8080/authorized"
