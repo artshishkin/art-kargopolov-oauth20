@@ -61,7 +61,7 @@ class NewSpringAuthorizationServerApplicationDockerIT {
 
     @Container
     static GenericContainer<?> newSpringAuthServer = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-new-spring-authorization-server")
-            .withNetworkAliases("discovery-service")
+            .withNetworkAliases("new-spring-auth-server")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHealthcheck());
 
