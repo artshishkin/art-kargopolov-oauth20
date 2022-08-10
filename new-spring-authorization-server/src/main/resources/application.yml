@@ -5,6 +5,8 @@ logging:
   level:
     net.shyshkin: debug
 
+app.client.baseUri: "http://127.0.0.1:8080"
+
 app.auth-server:
   provider:
     issuer: "http://auth-server:8000"
@@ -12,8 +14,8 @@ app.auth-server:
     - client-id: client1
       client-secret: ${CLIENT_SECRET:myClientSecretValue}
       redirect-uris:
-        - "http://127.0.0.1:8080/login/oauth2/code/orders-web-oauth-client"
-        - "http://127.0.0.1:8080/authorized"
+        - "${app.client.baseUri}/login/oauth2/code/orders-web-oauth-client"
+        - "${app.client.baseUri}/authorized"
       scopes: openid,read
 
 ---
