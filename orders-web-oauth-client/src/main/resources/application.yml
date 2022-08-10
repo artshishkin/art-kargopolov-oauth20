@@ -18,13 +18,15 @@ spring:
             clientSecret: ${CLIENT_SECRET:myClientSecretValue}
             scope:
               - openid
-              - roles
               - read
             redirectUri: ${app.redirect.host.uri}/login/oauth2/code/orders-web-oauth-client
             authorizationGrantType: authorization_code
         provider:
           orders-web-oauth-client:
             issuerUri: ${app.oauth.baseUri}
+logging:
+  level:
+    net.shyshkin: debug
 
 ---
 spring:
