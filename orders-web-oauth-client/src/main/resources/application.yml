@@ -1,6 +1,8 @@
 server:
   port: 8080
 
+app.services.orders.uri: http://orders-service:8091/orders
+
 app.redirect.host.uri: http://127.0.0.1:${server.port}
 
 app.oauth.uri: http://auth-server:8000
@@ -31,3 +33,4 @@ spring:
       on-profile: local
 
 app.oauth.uri: http://localhost:8000
+app.services.orders.uri: http://localhost:8091/orders
