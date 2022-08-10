@@ -1,2 +1,33 @@
 server:
-  port: 8180
+  port: 8080
+
+app.redirect.host.uri: http://127.0.0.1:${server.port}
+
+app.oauth.uri: http://auth-server:8000
+app.oauth.baseUri: ${app.oauth.uri}
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          orders-web-oauth-client:
+            clientId: client1
+            clientSecret: ${CLIENT_SECRET:myClientSecretValue}
+            scope:
+              - openid
+              - roles
+              - read
+            redirectUri: ${app.redirect.host.uri}/login/oauth2/code/orders-web-oauth-client
+            authorizationGrantType: authorization_code
+        provider:
+          orders-web-oauth-client:
+            issuerUri: ${app.oauth.baseUri}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+app.oauth.uri: http://localhost:8000

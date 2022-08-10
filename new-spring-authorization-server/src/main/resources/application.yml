@@ -12,7 +12,7 @@ app.auth-server:
     - client-id: client1
       client-secret: ${CLIENT_SECRET:myClientSecretValue}
       redirect-uris:
-        - "http://127.0.0.1:8080/login/oauth2/code/users-client-oidc"
+        - "http://127.0.0.1:8080/login/oauth2/code/orders-web-oauth-client"
         - "http://127.0.0.1:8080/authorized"
       scopes: openid,read
 
