@@ -22,6 +22,10 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: maven
+    - name: Add domain host.docker.internal
+      run: |
+        sudo tee -a /etc/hosts \<<<'127.0.0.1 host.docker.internal'
+        cat /etc/hosts
     - name: Install with Maven without testing
       run: mvn -B clean install -DskipTests --file pom.xml
     - name: Test with Maven

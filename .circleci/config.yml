@@ -16,6 +16,12 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: Add domain host.docker.internal
+          command: |
+            sudo tee -a /etc/hosts \<<<'127.0.0.1 host.docker.internal'
+            cat /etc/hosts
+
       # Download and cache dependencies
       - restore_cache:
           keys:

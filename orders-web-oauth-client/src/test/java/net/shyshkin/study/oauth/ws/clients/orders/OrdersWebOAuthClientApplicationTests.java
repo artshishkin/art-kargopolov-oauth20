@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -57,22 +56,18 @@ class OrdersWebOAuthClientApplicationTests {
     private static final int containerExposedPort = 8080;
     private static final Consumer<CreateContainerCmd> cmd = e -> e.withPortBindings(new PortBinding(Ports.Binding.bindPort(hostPort), new ExposedPort(containerExposedPort)));
 
-    static Network network = Network.SHARED;
-
     @Container
     static GenericContainer<?> newSpringAuthServer = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-new-spring-authorization-server")
             .withNetworkAliases("auth-server")
             .withEnv("app.auth-server.provider.issuer", "http://host.docker.internal:8000")
             .withEnv("app.client.baseUri", "http://127.0.0.1:8180")
             .withExposedPorts(8080)
-            .withNetwork(network)
             .withCreateContainerCmdModifier(cmd)
 //            .withLogConsumer(new Slf4jLogConsumer(log))
             .waitingFor(Wait.forHealthcheck());
 
     @Container
     static GenericContainer<?> ordersService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-orders-resource-server")
-            .withNetwork(network)
             .withNetworkAliases("orders-service")
             .withEnv("spring.security.oauth2.resourceserver.jwt.issuer-uri", "http://host.docker.internal:8000")
             .withExposedPorts(8080)
@@ -114,6 +109,7 @@ class OrdersWebOAuthClientApplicationTests {
 
         this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
         WebResponse signInResponse = signIn(page, DEFAULT_USERNAME, CORRECT_PASSWORD).getWebResponse();
+        log.debug("SignIn Response:\n{}", signInResponse.getContentAsString());
         assertThat(signInResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());    // there is no "default" index page
     }
 
