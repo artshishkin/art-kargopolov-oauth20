@@ -24,7 +24,7 @@ jobs:
         cache: maven
     - name: Add domain host.docker.internal
       run: |
-        echo 'host.docker.internal' | sudo tee -a /etc/hosts
+        echo '127.0.0.1 host.docker.internal' | sudo tee -a /etc/hosts
         cat /etc/hosts
     - name: Install with Maven without testing
       run: mvn -B clean install -DskipTests --file pom.xml
