@@ -37,8 +37,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {
         "server.port=8180",
         "app.services.orders.uri=http://${ORDERS_SERVICE_HOST}:${ORDERS_SERVICE_PORT}/orders",
-        "app.oauth.uri=http://host.docker.internal:8000"
+        "app.oauth.uri=http://host.testcontainers.internal:8000"
 })
+// for local tests add host.testcontainers.internal to /etc/hosts as 127.0.0.1
 @ContextConfiguration(initializers = OrdersWebOAuthClientApplicationTests.Initializer.class)
 class OrdersWebOAuthClientApplicationTests {
 
@@ -59,7 +60,7 @@ class OrdersWebOAuthClientApplicationTests {
     @Container
     static GenericContainer<?> newSpringAuthServer = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-new-spring-authorization-server")
             .withNetworkAliases("auth-server")
-            .withEnv("app.auth-server.provider.issuer", "http://host.docker.internal:8000")
+            .withEnv("app.auth-server.provider.issuer", "http://host.testcontainers.internal:8000")
             .withEnv("app.client.baseUri", "http://127.0.0.1:8180")
             .withExposedPorts(8080)
             .withCreateContainerCmdModifier(cmd)
@@ -69,11 +70,17 @@ class OrdersWebOAuthClientApplicationTests {
     @Container
     static GenericContainer<?> ordersService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-orders-resource-server")
             .withNetworkAliases("orders-service")
-            .withEnv("spring.security.oauth2.resourceserver.jwt.issuer-uri", "http://host.docker.internal:8000")
+            .withEnv("spring.security.oauth2.resourceserver.jwt.issuer-uri", "http://host.testcontainers.internal:8000")
+            .withAccessToHost(true)
             .withExposedPorts(8080)
             .withLogConsumer(new Slf4jLogConsumer(log))
             .dependsOn(newSpringAuthServer)
             .waitingFor(Wait.forHealthcheck());
+
+    @BeforeAll
+    static void beforeAll() {
+        org.testcontainers.Testcontainers.exposeHostPorts(8000);
+    }
 
     @BeforeEach
     void setUp() throws IOException {

@@ -17,9 +17,9 @@ jobs:
       - checkout
 
       - run:
-          name: Add domain host.docker.internal
+          name: Add domain host.testcontainers.internal
           command: |
-            echo '127.0.0.1 host.docker.internal' | sudo tee -a /etc/hosts
+            echo '127.0.0.1 host.testcontainers.internal' | sudo tee -a /etc/hosts
             cat /etc/hosts
 
       # Download and cache dependencies
