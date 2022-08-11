@@ -16,7 +16,7 @@ app.auth-server:
       redirect-uris:
         - "${app.client.baseUri}/login/oauth2/code/orders-web-oauth-client"
         - "${app.client.baseUri}/authorized"
-      scopes: openid,read
+      scopes: openid,read,authorities
 
 ---
 spring:
