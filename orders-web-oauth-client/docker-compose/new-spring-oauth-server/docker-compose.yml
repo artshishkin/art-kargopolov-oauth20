@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+
+  auth-server:
+    image: artarkatesoft/art-kargopolov-oauth20-new-spring-authorization-server:${SERVICE_VERSION:-latest}
+    environment:
+        "app.auth-server.provider.issuer": "http://host.docker.internal:8000"
+        "app.client.baseUri": "http://127.0.0.1:8180"
+    ports:
+      - "8000:8080"
+
+  orders-service:
+    image: artarkatesoft/art-kargopolov-oauth20-orders-resource-server:${SERVICE_VERSION:-latest}
+    environment:
+      "spring.security.oauth2.resourceserver.jwt.issuer-uri": "http://host.docker.internal:8000"
+    depends_on:
+      auth-server:
+        condition: service_healthy
+
+  orders-web-client:
+    image: artarkatesoft/art-kargopolov-oauth20-orders-web-oauth-client:${SERVICE_VERSION:-latest}
+    ports:
+      - "8180:8080"
+    environment:
+      "app.oauth.uri": "http://host.docker.internal:8000"
+      "app.services.orders.uri": "http://orders-service:8080/orders"
+      "app.redirect.host.uri": "http://127.0.0.1:8180"
+    depends_on:
+      orders-service:
+        condition: service_healthy
+
