@@ -5,7 +5,7 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ master, docker-image-name, git-actions-spa ]
+    branches: [ master, docker-image-name, git-actions-spa, resolve-host-docker-internal-in-ci ]
   pull_request:
     branches: [ master ]
 
@@ -24,7 +24,7 @@ jobs:
         cache: maven
     - name: Add domain host.docker.internal
       run: |
-        sudo tee -a /etc/hosts \<<<'127.0.0.1 host.docker.internal'
+        echo 'host.docker.internal' | sudo tee -a /etc/hosts
         cat /etc/hosts
     - name: Install with Maven without testing
       run: mvn -B clean install -DskipTests --file pom.xml
