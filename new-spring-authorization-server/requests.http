@@ -1,5 +1,5 @@
 ### GET Authorization code - manually in browser
-GET http://127.0.0.1:8000/oauth2/authorize?response_type=code&client_id=client1&scope=openid%20read%20authorities&redirect_uri=http://127.0.0.1:8080/authorized
+GET http://127.0.0.1:8000/oauth2/authorize?response_type=code&client_id=client1&scope=openid%20read%20authorities%20profile&redirect_uri=http://127.0.0.1:8080/authorized
 Accept: */*
 
 # Sign In using

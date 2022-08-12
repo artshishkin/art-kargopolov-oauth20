@@ -19,6 +19,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
@@ -26,6 +28,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +54,7 @@ class NewSpringAuthorizationServerApplicationTest {
             .fromPath("/oauth2/authorize")
             .queryParam("response_type", "code")
             .queryParam("client_id", "client1")
-            .queryParam("scope", "openid read")
+            .queryParam("scope", "openid read authorities")
             .queryParam("state", "some-state")
             .queryParam("redirect_uri", REDIRECT_URI)
             .toUriString();
@@ -63,6 +66,9 @@ class NewSpringAuthorizationServerApplicationTest {
 
     private static final String CLIENT_ID = "client1";
     private static final String CLIENT_PASSWORD = "myClientSecretValue";
+
+    @Autowired
+    JwtDecoder jwtDecoder;
 
     @Autowired
     private WebClient webClient;
@@ -165,10 +171,13 @@ class NewSpringAuthorizationServerApplicationTest {
         assertThat(responseBody).isNotNull();
         assertThat(responseBody.at("/access_token").asText()).isNotEmpty();
         assertThat(responseBody.at("/refresh_token").asText()).isNotEmpty();
-        assertThat(responseBody.at("/scope").asText()).contains("read", "openid");
+        assertThat(responseBody.at("/scope").asText()).contains("read", "openid", "authorities");
         assertThat(responseBody.at("/id_token").asText()).isNotEmpty();
         assertThat(responseBody.at("/token_type").asText()).isEqualTo("Bearer");
         assertThat(responseBody.at("/expires_in").asInt()).isGreaterThan(0).isLessThanOrEqualTo(300);
+
+        String jwtString = responseBody.at("/access_token").asText();
+        assertAccessTokenHasCorrectAuthorities(jwtString);
 
         authorizationCode = null;
     }
@@ -205,7 +214,19 @@ class NewSpringAuthorizationServerApplicationTest {
         String responseJson = mvcResult.getResponse().getContentAsString();
         Map<String, Object> responseMap = objectMapper.readValue(responseJson, TOKEN_RESPONSE_TYPE_REFERENCE);
         log.debug("Response body as Map: {}", responseMap);
+
+        String jwtString = responseMap.get("access_token").toString();
+        assertAccessTokenHasCorrectAuthorities(jwtString);
+
         authorizationCode = null;
+    }
+
+    private void assertAccessTokenHasCorrectAuthorities(String jwtString) {
+        Jwt jwt = jwtDecoder.decode(jwtString);
+        List<String> authorities = jwt.getClaimAsStringList("authorities");
+        assertThat(authorities)
+                .hasSize(1)
+                .contains("ROLE_USER");
     }
 
     @Test
