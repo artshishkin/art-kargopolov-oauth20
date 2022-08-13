@@ -56,7 +56,7 @@ class NewSpringAuthorizationServerApplicationTest {
             .fromPath("/oauth2/authorize")
             .queryParam("response_type", "code")
             .queryParam("client_id", "client1")
-            .queryParam("scope", "openid read authorities")
+            .queryParam("scope", "openid read authorities profile")
             .queryParam("state", "some-state")
             .queryParam("redirect_uri", REDIRECT_URI)
             .toUriString();
@@ -174,7 +174,7 @@ class NewSpringAuthorizationServerApplicationTest {
         assertThat(responseBody).isNotNull();
         assertThat(responseBody.at("/access_token").asText()).isNotEmpty();
         assertThat(responseBody.at("/refresh_token").asText()).isNotEmpty();
-        assertThat(responseBody.at("/scope").asText()).contains("read", "openid", "authorities");
+        assertThat(responseBody.at("/scope").asText()).contains("read", "openid", "authorities","profile");
         assertThat(responseBody.at("/id_token").asText()).isNotEmpty();
         assertThat(responseBody.at("/token_type").asText()).isEqualTo("Bearer");
         assertThat(responseBody.at("/expires_in").asInt()).isGreaterThan(0).isLessThanOrEqualTo(300);
@@ -260,9 +260,10 @@ class NewSpringAuthorizationServerApplicationTest {
                 .andExpect(jsonPath("$.sub").value(DEFAULT_USERNAME))
                 .andExpect(jsonPath("$.exp").value(allOf(greaterThan(0.0), lessThanOrEqualTo(System.currentTimeMillis() + 300_000.0)), Double.class))
                 .andExpect(jsonPath("$.scope").isArray())
-                .andExpect(jsonPath("$.scope[0]").value(Matchers.oneOf("read", "openid", "authorities")))
-                .andExpect(jsonPath("$.scope[1]").value(Matchers.oneOf("read", "openid", "authorities")))
-                .andExpect(jsonPath("$.scope[2]").value(Matchers.oneOf("read", "openid", "authorities")))
+                .andExpect(jsonPath("$.scope[0]").value(Matchers.oneOf("read", "openid", "authorities","profile")))
+                .andExpect(jsonPath("$.scope[1]").value(Matchers.oneOf("read", "openid", "authorities","profile")))
+                .andExpect(jsonPath("$.scope[2]").value(Matchers.oneOf("read", "openid", "authorities","profile")))
+                .andExpect(jsonPath("$.scope[3]").value(Matchers.oneOf("read", "openid", "authorities","profile")))
                 .andExpect(jsonPath("$.authorities[0]").value("ROLE_USER"));
     }
 

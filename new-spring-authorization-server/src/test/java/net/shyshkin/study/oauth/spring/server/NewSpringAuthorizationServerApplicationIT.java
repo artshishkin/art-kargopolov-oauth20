@@ -38,7 +38,7 @@ class NewSpringAuthorizationServerApplicationIT {
             .fromPath("/oauth2/authorize")
             .queryParam("response_type", "code")
             .queryParam("client_id", "client1")
-            .queryParam("scope", "openid read authorities")
+            .queryParam("scope", "openid read authorities profile")
             .queryParam("state", "some-state")
             .queryParam("redirect_uri", REDIRECT_URI)
             .toUriString();
@@ -162,7 +162,7 @@ class NewSpringAuthorizationServerApplicationIT {
         assertThat(responseBody).isNotNull();
         assertThat(responseBody.at("/access_token").asText()).isNotEmpty();
         assertThat(responseBody.at("/refresh_token").asText()).isNotEmpty();
-        assertThat(responseBody.at("/scope").asText()).contains("read", "openid", "authorities");
+        assertThat(responseBody.at("/scope").asText()).contains("read", "openid", "authorities", "profile");
         assertThat(responseBody.at("/id_token").asText()).isNotEmpty();
         assertThat(responseBody.at("/token_type").asText()).isEqualTo("Bearer");
         assertThat(responseBody.at("/expires_in").asInt()).isGreaterThan(0).isLessThanOrEqualTo(300);
