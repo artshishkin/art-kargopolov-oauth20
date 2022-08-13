@@ -10,6 +10,8 @@ import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContextInitializer;
@@ -45,6 +47,12 @@ class OrdersWebOAuthClientApplicationTests {
 
     private static final String DEFAULT_USERNAME = "art";
     private static final String CORRECT_PASSWORD = "art_pass";
+
+    private static final String USER_USERNAME = DEFAULT_USERNAME;
+    private static final String USER_PASSWORD = CORRECT_PASSWORD;
+
+    private static final String ADMIN_USERNAME = "kate";
+    private static final String ADMIN_PASSWORD = "kate_pass";
 
     private String webAppUri;
 
@@ -144,6 +152,68 @@ class OrdersWebOAuthClientApplicationTests {
         assertThat(ordersPage.getWebResponse().getStatusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(ordersPage.getTitleText()).isEqualTo("Orders");
         log.debug("Page toString: {}", ordersPage.getPage().getTextContent());
+        List<DomElement> ordersIdList = ordersPage.getElementsByTagName("span");
+        assertThat(ordersIdList)
+                .hasSize(5)
+                .allSatisfy(domElement -> {
+                            UUID uuid = UUID.fromString(domElement.getTextContent()); //if wrong it will throw java.lang.IllegalArgumentException
+                            log.debug("Order's id: {}", uuid);
+                        }
+                );
+    }
+
+    @Test
+    @Order(50)
+    public void whenLoginSuccessful_withRoleUser_ThenHasAccessToUserOrders() throws IOException {
+
+        HtmlPage page = this.webClient.getPage(webAppUri + "/user/orders");
+
+        assertLoginPage(page);
+
+        this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
+        HtmlPage ordersPage = signIn(page, USER_USERNAME, USER_PASSWORD);
+        assertThat(ordersPage.getWebResponse().getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(ordersPage.getTitleText()).isEqualTo("Orders");
+        List<DomElement> ordersIdList = ordersPage.getElementsByTagName("span");
+        assertThat(ordersIdList)
+                .hasSize(5)
+                .allSatisfy(domElement -> {
+                            UUID uuid = UUID.fromString(domElement.getTextContent()); //if wrong it will throw java.lang.IllegalArgumentException
+                            log.debug("Order's id: {}", uuid);
+                        }
+                );
+    }
+
+    @Test
+    @Order(51)
+    public void whenLoginSuccessful_withRoleUser_ThenHas_NO_AccessToAdminOrders() throws IOException {
+
+        HtmlPage page = this.webClient.getPage(webAppUri + "/admin/orders");
+
+        assertLoginPage(page);
+
+        this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
+        HtmlPage ordersPage = signIn(page, USER_USERNAME, USER_PASSWORD);
+        assertThat(ordersPage.getWebResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(ordersPage.getWebResponse().getContentAsString()).contains("Whitelabel Error Page");
+    }
+
+    @ParameterizedTest
+    @Order(60)
+    @ValueSource(strings = {
+            "/orders", "/user/orders", "/admin/orders"
+    })
+    public void whenLoginSuccessful_withRoleAdmin_ThenHasAccessToAnyOrdersEndpoint(String endpointUri) throws IOException {
+
+        HtmlPage page = this.webClient.getPage(webAppUri + endpointUri);
+
+        assertLoginPage(page);
+
+        this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
+        HtmlPage ordersPage = signIn(page, ADMIN_USERNAME, ADMIN_PASSWORD);
+        assertThat(ordersPage.getWebResponse().getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(ordersPage.getTitleText()).isEqualTo("Orders");
+
         List<DomElement> ordersIdList = ordersPage.getElementsByTagName("span");
         assertThat(ordersIdList)
                 .hasSize(5)

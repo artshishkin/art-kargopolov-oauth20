@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.stereotype.Controller;
@@ -33,9 +34,30 @@ public class OrdersController {
             Model model,
             @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
 
+        return getOrders(model, authorizedClient);
+    }
+
+    @GetMapping("/user/orders")
+    @Secured({"ROLE_USER", "ROLE_ADMIN"})
+    public String getAllOrdersRoleUser(
+            Model model,
+            @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
+
+        return getOrders(model, authorizedClient);
+    }
+
+    @GetMapping("/admin/orders")
+    @Secured({"ROLE_ADMIN"})
+    public String getAllOrdersRoleAdmin(
+            Model model,
+            @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
+
+        return getOrders(model, authorizedClient);
+    }
+
+    private String getOrders(Model model, @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
         String jwtToken = authorizedClient.getAccessToken().getTokenValue();
         log.debug("JWT Token: {}", jwtToken);
-
         RequestEntity<Void> requestEntity = RequestEntity.get(ordersServiceUri)
                 .headers(h -> h.setBearerAuth(jwtToken))
                 .build();
