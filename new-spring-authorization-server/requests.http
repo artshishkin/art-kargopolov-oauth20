@@ -1,5 +1,5 @@
 ### GET Authorization code - manually in browser
-GET http://127.0.0.1:8000/oauth2/authorize?response_type=code&client_id=client1&scope=openid%20read%20authorities%20profile&redirect_uri=http://127.0.0.1:8080/authorized
+GET http://127.0.0.1:8000/oauth2/authorize?response_type=code&client_id=client1&scope=openid%20read%20authorities&redirect_uri=http://127.0.0.1:8080/authorized
 Accept: */*
 
 # Sign In using
@@ -13,7 +13,7 @@ POST http://127.0.0.1:8000/oauth2/token
 Content-Type: application/x-www-form-urlencoded
 Authorization: Basic client1 myClientSecretValue
 
-grant_type=authorization_code&redirect_uri=http://127.0.0.1:8080/authorized&code=1c5s_qHF9UqofsqvP9Y4YPPiuagLYZPj_d0CCHVaucCHAY6-25tklGj0udCx4dC4bWAaHyT8Ml06YmqC41-qaqbiW__q_ofodvC4DfFY2GhWkI-p6iNd8mpYrxzY9Fz6
+grant_type=authorization_code&redirect_uri=http://127.0.0.1:8080/authorized&code=B4NEZZmaqcrUk3o07_1RX5cnREr8fHbw50SSOAjeEmEfkcV05Zzgac0cNesbR6LMwj-4sivh4WkBoyxcEIpZKGSRRR47YVU9iRuwkbfuSExtQWuZmenat59XHv7b_gBm
 
 > {% client.global.set("access_token", response.body.access_token); %}
 
@@ -22,3 +22,7 @@ GET http://127.0.0.1:8000/.well-known/openid-configuration
 Accept: application/json
 Authorization: Basic client1 myClientSecretValue
 
+### Get userinfo
+GET http://127.0.0.1:8000/userinfo
+Accept: application/json
+Authorization: Bearer {{access_token}}
