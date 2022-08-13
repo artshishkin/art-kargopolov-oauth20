@@ -1,0 +1,30 @@
+### GET Authorization code - manually in browser
+GET http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth?response_type=code&client_id=photo-app-code-flow-client&scope=openid profile&state=jskd879sdkj&redirect_uri=http://localhost:8083/callback
+Accept: */*
+
+# Sign In using
+# username = shyshkin.art
+# password = password_art_1
+
+# Copy code from redirect URI
+
+### Get Access token - we choose ClientAuthenticationMethod.CLIENT_SECRET_BASIC
+POST http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic client1 myClientSecretValue
+
+grant_type=authorization_code&client_id=photo-app-code-flow-client&client_secret=ee68a49e-5ac6-4673-9465-51e53de3fb0e&scope=openid%20profile&redirect_uri=http://localhost:8083/callback&code=621a299d-42f6-49e9-bad0-db2fa8fecfc7.a4543b81-e54d-4834-ac39-9ecf7ba27959.5ca38048-af08-42e3-8bef-fa42c2956a9c
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### Get openid-configuration
+GET http://localhost:8080/auth/realms/katarinazart/.well-known/openid-configuration
+Accept: application/json
+Authorization: Basic client1 myClientSecretValue
+
+### Get userinfo
+GET http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/userinfo
+Accept: application/json
+Authorization: Bearer {{access_token}}
+
+
