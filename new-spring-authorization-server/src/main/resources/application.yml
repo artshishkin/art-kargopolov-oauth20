@@ -4,6 +4,7 @@ server:
 logging:
   level:
     net.shyshkin: debug
+#    org.springframework.security: trace
 
 app.client.baseUri: "http://127.0.0.1:8080"
 

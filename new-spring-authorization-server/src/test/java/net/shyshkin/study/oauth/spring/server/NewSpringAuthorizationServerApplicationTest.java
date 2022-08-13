@@ -11,6 +11,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import lombok.extern.slf4j.Slf4j;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,6 +38,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -80,6 +82,7 @@ class NewSpringAuthorizationServerApplicationTest {
     MockMvc mockMvc;
 
     private static String authorizationCode;
+    private static String accessToken;
 
     @BeforeEach
     void setUp() {
@@ -218,7 +221,15 @@ class NewSpringAuthorizationServerApplicationTest {
         String jwtString = responseMap.get("access_token").toString();
         assertAccessTokenHasCorrectAuthorities(jwtString);
 
+        accessToken = jwtString;
+
         authorizationCode = null;
+    }
+
+    private String getAccessToken() throws Exception {
+        if (accessToken == null)
+            whenAskingForATokenWithAuthCodeThenReturnsToken_usingMockMvc();
+        return accessToken;
     }
 
     private void assertAccessTokenHasCorrectAuthorities(String jwtString) {
@@ -227,6 +238,32 @@ class NewSpringAuthorizationServerApplicationTest {
         assertThat(authorities)
                 .hasSize(1)
                 .contains("ROLE_USER");
+    }
+
+    @Test
+    @Order(70)
+    public void whenAskingForUserinfoWithCorrectAccessToken_ThenReturnsCorrectData() throws Exception {
+
+        //given
+        String accessToken = getAccessToken();
+
+        HttpHeaders bearerAuth = new HttpHeaders();
+        bearerAuth.setBearerAuth(accessToken);
+
+        //when
+        this.mockMvc.perform(get("/userinfo")
+                        .headers(bearerAuth))
+
+                //then
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, containsString(MediaType.APPLICATION_JSON_VALUE)))
+                .andExpect(jsonPath("$.sub").value(DEFAULT_USERNAME))
+                .andExpect(jsonPath("$.exp").value(allOf(greaterThan(0.0), lessThanOrEqualTo(System.currentTimeMillis() + 300_000.0)), Double.class))
+                .andExpect(jsonPath("$.scope").isArray())
+                .andExpect(jsonPath("$.scope[0]").value(Matchers.oneOf("read", "openid", "authorities")))
+                .andExpect(jsonPath("$.scope[1]").value(Matchers.oneOf("read", "openid", "authorities")))
+                .andExpect(jsonPath("$.scope[2]").value(Matchers.oneOf("read", "openid", "authorities")))
+                .andExpect(jsonPath("$.authorities[0]").value("ROLE_USER"));
     }
 
     @Test
