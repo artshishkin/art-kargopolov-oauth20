@@ -13,8 +13,9 @@ import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.ws.api.orders.dto.OrderRest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -32,7 +33,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @ActiveProfiles("local")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class OrdersResourceServerApplicationTest {
 
     private static final String REDIRECT_URI = "http://127.0.0.1:8080/authorized";
@@ -50,15 +54,18 @@ class OrdersResourceServerApplicationTest {
             .fromPath("/oauth2/authorize")
             .queryParam("response_type", "code")
             .queryParam("client_id", "client1")
-            .queryParam("scope", "openid read")
+            .queryParam("scope", "openid read authorities")
             .queryParam("state", "some-state")
             .queryParam("redirect_uri", REDIRECT_URI)
             .toUriString();
 
     private static final String TOKEN_REQUEST_URL = "/oauth2/token";
 
-    private static final String DEFAULT_USERNAME = "art";
-    private static final String CORRECT_PASSWORD = "art_pass";
+    private static final String USER_USERNAME = "art";
+    private static final String USER_PASSWORD = "art_pass";
+
+    private static final String ADMIN_USERNAME = "kate";
+    private static final String ADMIN_PASSWORD = "kate_pass";
 
     private static final String CLIENT_ID = "client1";
     private static final String CLIENT_PASSWORD = "myClientSecretValue";
@@ -71,7 +78,7 @@ class OrdersResourceServerApplicationTest {
 
     RestTemplate restTemplate;
 
-    private static String accessToken;
+    private static Map<String, String> accessTokens = new HashMap<>();
 
     @Autowired
     TestRestTemplate testRestTemplate;
@@ -100,11 +107,10 @@ class OrdersResourceServerApplicationTest {
                 .rootUri(baseUri)
                 .build();
 
-        if (accessToken == null)
-            accessToken = getAccessToken();
     }
 
     @Test
+    @Order(10)
     void whenRequestingOrdersEndpointWithoutTokenThenShouldReturn401Unauthorized() {
 
         //when
@@ -117,6 +123,7 @@ class OrdersResourceServerApplicationTest {
     }
 
     @Test
+    @Order(20)
     void whenRequestingHealthEndpointWithoutTokenThenShouldReturn200() {
 
         //when
@@ -130,9 +137,11 @@ class OrdersResourceServerApplicationTest {
     }
 
     @Test
+    @Order(30)
     void whenRequestingOrdersEndpointWithTokenThenShouldReturnCorrectOrders() {
 
         //given
+        String accessToken = getAccessToken(USER_USERNAME, USER_PASSWORD);
         RequestEntity<Void> requestEntity = RequestEntity
                 .get("/orders")
                 .headers(h -> h.setBearerAuth(accessToken))
@@ -160,10 +169,114 @@ class OrdersResourceServerApplicationTest {
                 ));
     }
 
-    private String getAccessToken() throws IOException {
+    @Test
+    @Order(40)
+    void whenUsingAccessTokenWithUserRole_thenHasAccessToUserOrdersEndpoint() {
 
         //given
-        String authorizationCode = getAuthorizationCode();
+        String accessToken = getAccessToken(USER_USERNAME, USER_PASSWORD);
+        RequestEntity<Void> requestEntity = RequestEntity
+                .get("/user/orders")
+                .headers(h -> h.setBearerAuth(accessToken))
+                .build();
+
+        //when
+        var responseEntity = testRestTemplate.exchange(requestEntity, ORDERS_TYPE);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody())
+                .isNotEmpty()
+                .hasSize(5)
+                .allSatisfy(order -> assertAll(
+                        () -> assertThat(order)
+                                .isNotNull()
+                                .hasNoNullFieldsOrProperties(),
+                        () -> assertThat(order.getProductId())
+                                .startsWith("product-id-"),
+                        () -> assertThat(order.getUserId())
+                                .startsWith("user-id-"),
+                        () -> assertThat(order.getQuantity())
+                                .isGreaterThanOrEqualTo(1)
+                                .isLessThanOrEqualTo(10)
+                ));
+    }
+
+    @Test
+    @Order(50)
+    @DisplayName("When user with USER_ROLE authority tries to access admin orders endpoint then he must be FORBIDDEN")
+    void whenUsingAccessTokenWithUserRole_thenHas_NO_AccessToAdminOrdersEndpoint() {
+
+        //given
+        String accessToken = getAccessToken(USER_USERNAME, USER_PASSWORD);
+        RequestEntity<Void> requestEntity = RequestEntity
+                .get("/admin/orders")
+                .headers(h -> h.setBearerAuth(accessToken))
+                .build();
+
+        //when
+        var responseEntity = testRestTemplate.exchange(requestEntity, String.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(responseEntity.getBody())
+                .isNullOrEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/orders", "/user/orders", "/admin/orders"
+    })
+    @Order(60)
+    @DisplayName("When user with ADMIN_ROLE authority tries to access user or admin orders endpoints then he must be OK")
+    void whenUsingAccessTokenWithAdminRole_thenHasAccessToAdminOrdersEndpoint(String endpointUri) {
+
+        //given
+        String accessToken = getAccessToken(ADMIN_USERNAME, ADMIN_PASSWORD);
+        RequestEntity<Void> requestEntity = RequestEntity
+                .get(endpointUri)
+                .headers(h -> h.setBearerAuth(accessToken))
+                .build();
+
+        //when
+        var responseEntity = testRestTemplate.exchange(requestEntity, ORDERS_TYPE);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody())
+                .isNotEmpty()
+                .hasSize(5)
+                .allSatisfy(order -> assertAll(
+                        () -> assertThat(order)
+                                .isNotNull()
+                                .hasNoNullFieldsOrProperties(),
+                        () -> assertThat(order.getProductId())
+                                .startsWith("product-id-"),
+                        () -> assertThat(order.getUserId())
+                                .startsWith("user-id-"),
+                        () -> assertThat(order.getQuantity())
+                                .isGreaterThanOrEqualTo(1)
+                                .isLessThanOrEqualTo(10)
+                ));
+    }
+
+    private String getAccessToken(String username, String password) {
+        String token = accessTokens.get(username);
+        if (token == null) {
+            try {
+                token = createAccessToken(username, password);
+            } catch (IOException e) {
+                log.error("Can not get access token", e);
+                throw new RuntimeException(e);
+            }
+        }
+        return token;
+    }
+
+    private String createAccessToken(String username, String password) throws IOException {
+
+        //given
+        String authorizationCode = getAuthorizationCode(username, password);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -195,11 +308,11 @@ class OrdersResourceServerApplicationTest {
         return responseBody.at("/access_token").asText();
     }
 
-    private String getAuthorizationCode() throws IOException {
+    private String getAuthorizationCode(String username, String password) throws IOException {
         // Log in
         this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
         this.webClient.getOptions().setRedirectEnabled(false);
-        signIn(this.webClient.getPage(baseUri + "/login"), DEFAULT_USERNAME, CORRECT_PASSWORD);
+        signIn(this.webClient.getPage(baseUri + "/login"), username, password);
 
         // Request Authorization code
         WebResponse response = this.webClient.getPage(baseUri + AUTHORIZATION_REQUEST).getWebResponse();
