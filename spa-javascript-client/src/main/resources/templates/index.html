@@ -15,7 +15,7 @@
         let usersApiUri;
         let gatewayUri;
 
-        $(document).ready(function () {   //same as: $(function() {
+        $(document).ready(function () {
             initUris();
         });
 
@@ -60,7 +60,7 @@
             return base64urlEncoded;
         }
 
-        async function generateCodeChallenge() {
+        function generateCodeChallenge() {
             let codeChallengeValue = "";
 
             let codeVerifier = document.getElementById("codeVerifierValue").innerHTML;
@@ -132,7 +132,10 @@
             document.getElementById("accessToken").innerHTML = data["access_token"];
         }
 
-        function getInfoFromResourceServer(resourceServerUri, endpoint = "/users/status/check") {
+        // function getInfoFromResourceServer(resourceServerUri, endpoint = "/users/status/check") {
+        function getInfoFromResourceServer(resourceServerUri, endpoint) {
+
+            if (!endpoint) endpoint = "/users/status/check";
 
             const accessToken = document.getElementById("accessToken").innerHTML;
 
@@ -157,7 +160,10 @@
             ;
         }
 
-        function deleteRegularUser(resourceServerUri, endpoint = "/users/regular/some_fake_id") {
+        // function deleteRegularUser(resourceServerUri, endpoint = "/users/regular/some_fake_id") {
+        function deleteRegularUser(resourceServerUri, endpoint) {
+
+            if (!endpoint) endpoint = "/users/regular/some_fake_id";
 
             const accessToken = document.getElementById("accessToken").innerHTML;
 
@@ -262,9 +268,9 @@
         Delete user by fake id
     </button>
 </div>
-<script>
-    initUris();
-</script>
+<!--<script>-->
+<!--    initUris();-->
+<!--</script>-->
 
 </body>
 </html>
