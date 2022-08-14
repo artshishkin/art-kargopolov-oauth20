@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContextInitializer;
@@ -17,20 +18,26 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
-        "app.oauth.uri=http://host.testcontainers.internal:${OAUTH_PORT}"
+        "app.oauth.uri=http://host.testcontainers.internal:${OAUTH_PORT}",
+        "app.gateway.uri=http://localhost:${GATEWAY_PORT}",
+        "app.users-api.uri=http://localhost:${USERS_API_PORT}"
 })
 @ContextConfiguration(initializers = SpaJavascriptClientApplicationWebClientDockerTest.Initializer.class)
 class SpaJavascriptClientApplicationWebClientDockerTest {
@@ -41,9 +48,17 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
     @LocalServerPort
     int serverPort;
 
+    @Value("${app.users-api.uri}")
+    String usersServiceUri;
+
+    @Value("${app.gateway.uri}")
+    String gatewayUri;
+
     private WebClient webClient;
 
     private String baseUri;
+
+    private AtomicReference<String> lastAlertMessage = new AtomicReference<>();
 
     @Container
     static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
@@ -52,51 +67,33 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
 
     static Network network = keycloakStackContainers.getStackNetwork();
 
-//    @Container
-//    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")
-//            .withNetwork(network)
-//            .withNetworkAliases("discovery-service")
-//            .withExposedPorts(8080)
-//            .waitingFor(Wait.forHealthcheck());
+    @Container
+    static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")
+            .withNetwork(network)
+            .withNetworkAliases("discovery-service")
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHealthcheck());
 
-//    @Container
-//    static GenericContainer<?> usersService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-resource-server")
-//            .withNetwork(network)
-//            .withNetworkAliases("users-service")
-//            .withExposedPorts(8080)
-//            .withEnv("eureka.client.enabled", "true")
-//            .dependsOn(keycloak, discoveryService)
-//            .waitingFor(Wait.forHealthcheck());
-//
-//    @Container
-//    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-api-gateway")
-//            .withNetwork(network)
-//            .withNetworkAliases("gateway-service")
-//            .withExposedPorts(8080)
-//            .withEnv("eureka.client.enabled", "true")
-//            .withEnv("spring.profiles.active", "local")
-//            .withEnv("discovery.service.uri", "http://discovery-service:8080")
-//            .withEnv("eureka.client.registry-fetch-interval-seconds", "1")
-//            .dependsOn(usersService, discoveryService)
-//            .waitingFor(Wait.forHealthcheck());
+    @Container
+    static GenericContainer<?> usersService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-resource-server")
+            .withNetwork(network)
+            .withNetworkAliases("users-service")
+            .withExposedPorts(8080)
+            .withEnv("eureka.client.enabled", "true")
+            .dependsOn(keycloak, discoveryService)
+            .waitingFor(Wait.forHealthcheck());
 
-
-//    @Container
-//    static GenericContainer<?> spaJavascriptClient = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-spa-javascript-client")
-//            .withNetwork(network)
-//            .withNetworkAliases("spa-javascript-client")
-//            .withEnv(Map.of(
-//                    "logging.level.net.shyshkin", "debug",
-//                    "app.redirect.host.uri", "http://spa-javascript-client:8080",
-//                    "app.oauth.uri", "http://keycloak:8080",
-//                    "app.gateway.uri", "http://gateway-service:8080",
-//                    "app.users-api.uri", "http://users-service:8080"
-//            ))
-//            .withExposedPorts(8080)
-//            .dependsOn(keycloak/*, gatewayService, usersService*/)
-//            .withLogConsumer(new Slf4jLogConsumer(log))
-//            .waitingFor(Wait.forHealthcheck());
-
+    @Container
+    static GenericContainer<?> gatewayService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-api-gateway")
+            .withNetwork(network)
+            .withNetworkAliases("gateway-service")
+            .withExposedPorts(8080)
+            .withEnv("eureka.client.enabled", "true")
+            .withEnv("spring.profiles.active", "local")
+            .withEnv("discovery.service.uri", "http://discovery-service:8080")
+            .withEnv("eureka.client.registry-fetch-interval-seconds", "1")
+            .dependsOn(usersService, discoveryService)
+            .waitingFor(Wait.forHealthcheck());
 
     @BeforeEach
     void setUp() {
@@ -138,9 +135,9 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
         assertThat(page.getTitleText()).isEqualTo("Javascript Application with PKCE");
         assertThat(page.getHtmlElementById("redirectHostUri").getTextContent()).isEqualTo("http://localhost:" + serverPort);
         assertThat(page.getHtmlElementById("oAuthServerUri").getTextContent()).isEqualTo(String.format("http://host.testcontainers.internal:%d", keycloak.getMappedPort(8080)));
-        assertThat(page.getHtmlElementById("usersApiUri").getTextContent()).isEqualTo("http://localhost:8666");
-        assertThat(page.getHtmlElementById("gatewayUri").getTextContent()).isEqualTo("http://localhost:8090");
-        assertThat(page.getHtmlElementById("resourceServerUri").getAttribute("value")).isEqualTo("http://localhost:8666");
+        assertThat(page.getHtmlElementById("usersApiUri").getTextContent()).isEqualTo(usersServiceUri);
+        assertThat(page.getHtmlElementById("gatewayUri").getTextContent()).isEqualTo(gatewayUri);
+        assertThat(page.getHtmlElementById("resourceServerUri").getAttribute("value")).isEqualTo(usersServiceUri);
 
         //click on button `Generate Random State Value` should change text in `stateValue` field
         page.getHtmlElementById("generateStateBtn").click();
@@ -189,63 +186,35 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
                 "getInfoFromResourceServerRoleBtn"
         );
 
-//        for (String buttonsId : directResourceServerButtonsIds) {
-//            log.debug("Clicking on `{}`", buttonsId);
-//            page.getHtmlElementById(buttonsId).click();
-//            waitForAlert("Working...");
-//        }
-//
-//        //click on buttons `Delete user by fake id` should show alert with "Deleted user with id: some_fake_id" message
-//        for (String buttonsId : List.of("deleteRegularUserBtn")) {
-//            log.debug("Clicking on `{}`", buttonsId);
-//            page.getHtmlElementById(buttonsId).click();
-//            waitForAlert("Deleted user with id: some_fake_id");
-//        }
+        webClient.setAlertHandler((AlertHandler) (page1, message) -> lastAlertMessage.set(message));
+
+        for (String buttonsId : directResourceServerButtonsIds) {
+            log.debug("Clicking on `{}`", buttonsId);
+            page.getHtmlElementById(buttonsId).click();
+            waitForAlert("Working...");
+        }
+
+        //click on buttons `Delete user by fake id` should show alert with "Deleted user with id: some_fake_id" message
+        for (String buttonsId : List.of("deleteRegularUserBtn")) {
+            log.debug("Clicking on `{}`", buttonsId);
+            page.getHtmlElementById(buttonsId).click();
+            waitForAlert("Deleted user with id: some_fake_id");
+        }
 
         boolean skipTestsWithGateway = true;
         if (skipTestsWithGateway) return;
 
     }
 
-//    private void waitFor(String message, List<Executable> executableList) {
-//
-//        AtomicReference<String> lastUrl = new AtomicReference<>("");
-//        AtomicReference<String> lastPageContent = new AtomicReference<>("");
-//
-//        AtomicLong start = new AtomicLong(System.currentTimeMillis());
-//
-//        await()
-//                .timeout(10, TimeUnit.SECONDS)
-//                .pollInterval(500, TimeUnit.MILLISECONDS)
-//                .untilAsserted(() -> {
-//
-//                    String currentUrl = page.getCurrentUrl();
-//                    String pageSource = page.getPageSource();
-//
-//                    if (Objects.equals(currentUrl, lastUrl.get()) && Objects.equals(pageSource, lastPageContent.get())) {
-//
-//                        log.debug("Waiting for {}... {} ms", message, System.currentTimeMillis() - start.get());
-//                    } else {
-//                        start.set(System.currentTimeMillis());
-//                        log.debug("Current URL: {}", currentUrl);
-//                        log.debug("Page: \n{}", pageSource);
-//                        lastUrl.set(currentUrl);
-//                        lastPageContent.set(pageSource);
-//                    }
-//                    assertAll(executableList);
-//                });
-//    }
-//
-//    private void waitForAlert(String expectedMessage) {
-//        await()
-//                .timeout(10, TimeUnit.SECONDS)
-//                .pollInterval(100, TimeUnit.MILLISECONDS)
-//                .untilAsserted(() -> {
-//                    Alert alert = page.switchTo().alert();
-//                    assertThat(alert.getTextContent()).isEqualTo(expectedMessage);
-//                    alert.accept();
-//                });
-//    }
+    private void waitForAlert(String expectedMessage) {
+        await()
+                .timeout(5, TimeUnit.SECONDS)
+                .pollInterval(100, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    assertThat(lastAlertMessage.get()).isEqualTo(expectedMessage);
+                    lastAlertMessage.set("");
+                });
+    }
 
     private static <P extends Page> P signIn(HtmlPage page, String username, String password) throws IOException {
         HtmlInput usernameInput = page.querySelector("input[name=\"username\"]");
@@ -283,6 +252,12 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
             System.setProperty("OAUTH_HOST", keycloak.getHost());
             Integer keycloakPort = keycloak.getMappedPort(8080);
             System.setProperty("OAUTH_PORT", String.valueOf(keycloakPort));
+
+            Integer usersServicePort = usersService.getMappedPort(8080);
+            System.setProperty("USERS_API_PORT", String.valueOf(usersServicePort));
+
+            Integer gatewayPort = gatewayService.getMappedPort(8080);
+            System.setProperty("GATEWAY_PORT", String.valueOf(gatewayPort));
         }
     }
 }
