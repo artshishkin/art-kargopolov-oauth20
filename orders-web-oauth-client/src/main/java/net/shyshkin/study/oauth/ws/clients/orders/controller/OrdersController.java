@@ -26,15 +26,21 @@ public class OrdersController {
     };
     private final RestTemplate restTemplate;
 
-    @Value("${app.services.orders.uri}")
-    private String ordersServiceUri;
+    @Value("${app.services.orders.default-uri}")
+    private String ordersServiceDefaultUri;
+
+    @Value("${app.services.orders.user-uri}")
+    private String ordersServiceUserUri;
+
+    @Value("${app.services.orders.admin-uri}")
+    private String ordersServiceAdminUri;
 
     @GetMapping("/orders")
     public String getAllOrders(
             Model model,
             @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
 
-        return getOrders(model, authorizedClient);
+        return getOrders(ordersServiceDefaultUri, model, authorizedClient);
     }
 
     @GetMapping("/user/orders")
@@ -43,7 +49,7 @@ public class OrdersController {
             Model model,
             @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
 
-        return getOrders(model, authorizedClient);
+        return getOrders(ordersServiceUserUri, model, authorizedClient);
     }
 
     @GetMapping("/admin/orders")
@@ -52,10 +58,10 @@ public class OrdersController {
             Model model,
             @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
 
-        return getOrders(model, authorizedClient);
+        return getOrders(ordersServiceAdminUri, model, authorizedClient);
     }
 
-    private String getOrders(Model model, @RegisteredOAuth2AuthorizedClient("orders-web-oauth-client") OAuth2AuthorizedClient authorizedClient) {
+    private String getOrders(String ordersServiceUri, Model model, OAuth2AuthorizedClient authorizedClient) {
         String jwtToken = authorizedClient.getAccessToken().getTokenValue();
         log.debug("JWT Token: {}", jwtToken);
         RequestEntity<Void> requestEntity = RequestEntity.get(ordersServiceUri)

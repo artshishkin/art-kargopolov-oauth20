@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestPropertySource(properties = {
         "server.port=8180",
-        "app.services.orders.uri=http://${ORDERS_SERVICE_HOST}:${ORDERS_SERVICE_PORT}/orders",
+        "app.services.orders.base-uri=http://${ORDERS_SERVICE_HOST}:${ORDERS_SERVICE_PORT}",
         "app.oauth.uri=http://host.testcontainers.internal:8000"
 })
 // for local tests add host.testcontainers.internal to /etc/hosts as 127.0.0.1
