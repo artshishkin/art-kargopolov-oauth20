@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 
@@ -23,7 +24,7 @@ import java.net.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug"
 })
@@ -34,8 +35,13 @@ class SpaJavascriptClientApplicationWebClientMockTest {
     @Autowired
     private WebClient webClient;
 
+    @LocalServerPort
+    int serverPort;
+
     @BeforeEach
     void setUp() {
+
+        System.setProperty("app.redirect.host.uri", "http://localhost:" + serverPort);
 
         this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(true);
         this.webClient.getOptions().setThrowExceptionOnScriptError(false);
@@ -71,7 +77,7 @@ class SpaJavascriptClientApplicationWebClientMockTest {
 
         assertThat(page.getTitleText()).isEqualTo("Javascript Application with PKCE");
 
-        assertThat(page.getHtmlElementById("redirectHostUri").getTextContent()).isEqualTo("http://localhost:8181");
+        assertThat(page.getHtmlElementById("redirectHostUri").getTextContent()).isEqualTo("http://localhost:" + serverPort);
         assertThat(page.getHtmlElementById("oAuthServerUri").getTextContent()).isEqualTo("http://localhost:8080");
         assertThat(page.getHtmlElementById("usersApiUri").getTextContent()).isEqualTo("http://localhost:8666");
         assertThat(page.getHtmlElementById("gatewayUri").getTextContent()).isEqualTo("http://localhost:8090");
@@ -102,7 +108,7 @@ class SpaJavascriptClientApplicationWebClientMockTest {
         assertThat(webResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
         URL requestUrl = webResponse.getWebRequest().getUrl();
         assertThat(requestUrl.toString())
-                .startsWith("http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth?client_id=photo-app-pkce-client&response_type=code&scope=openid%20profile&redirect_uri=http://localhost:8181/authcodeReader.html&state=")
+                .startsWith("http://localhost:8080/auth/realms/katarinazart/protocol/openid-connect/auth?client_id=photo-app-pkce-client&response_type=code&scope=openid%20profile&redirect_uri=http://localhost:" + serverPort + "/authcodeReader.html&state=")
                 .contains("code_challenge=", "code_challenge_method=S256");
     }
 

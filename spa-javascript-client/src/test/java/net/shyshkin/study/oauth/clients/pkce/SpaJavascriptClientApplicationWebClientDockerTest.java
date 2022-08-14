@@ -26,7 +26,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
@@ -101,6 +101,8 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
     @BeforeEach
     void setUp() {
 
+        System.setProperty("app.redirect.host.uri", "http://localhost:" + serverPort);
+
         this.webClient = new WebClient();
         this.baseUri = "http://localhost:" + serverPort;
         this.webClient.getOptions().setThrowExceptionOnFailingStatusCode(true);
@@ -134,8 +136,8 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
         webClient.waitForBackgroundJavaScript(1000L);
 
         assertThat(page.getTitleText()).isEqualTo("Javascript Application with PKCE");
-        assertThat(page.getHtmlElementById("redirectHostUri").getTextContent()).isEqualTo("http://localhost:8181");
-        assertThat(page.getHtmlElementById("oAuthServerUri").getTextContent()).isEqualTo(String.format("http://host.testcontainers.internal:%d" , keycloak.getMappedPort(8080)));
+        assertThat(page.getHtmlElementById("redirectHostUri").getTextContent()).isEqualTo("http://localhost:" + serverPort);
+        assertThat(page.getHtmlElementById("oAuthServerUri").getTextContent()).isEqualTo(String.format("http://host.testcontainers.internal:%d", keycloak.getMappedPort(8080)));
         assertThat(page.getHtmlElementById("usersApiUri").getTextContent()).isEqualTo("http://localhost:8666");
         assertThat(page.getHtmlElementById("gatewayUri").getTextContent()).isEqualTo("http://localhost:8090");
         assertThat(page.getHtmlElementById("resourceServerUri").getAttribute("value")).isEqualTo("http://localhost:8666");
