@@ -4,6 +4,7 @@ import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 import com.gargoylesoftware.htmlunit.javascript.DefaultJavaScriptErrorListener;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
@@ -201,8 +202,34 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
             waitForAlert("Deleted user with id: some_fake_id");
         }
 
-        boolean skipTestsWithGateway = true;
+        boolean skipTestsWithGateway = false;
         if (skipTestsWithGateway) return;
+
+        //click on buttons `Get Info From Resource Server `users` through Gateway` should show alert with "Working..." message
+        for (String buttonsId : List.of("getInfoFromResourceServerThroughGatewayBtn")) {
+            log.debug("Clicking on `{}`", buttonsId);
+            page.getHtmlElementById(buttonsId).click();
+            waitForAlert("Working...");
+        }
+
+        //get Info From Resource Server through API Gateway should show alert with "Working..." message
+        HtmlTextInput serverUriInputField = page.getHtmlElementById("resourceServerUri");
+        serverUriInputField.setText(gatewayUri);
+//        serverUriInputField.type(gatewayUri);
+        assertThat(serverUriInputField.getAttribute("value")).isEqualTo(gatewayUri);
+
+        for (String buttonsId : directResourceServerButtonsIds) {
+            log.debug("GATEWAY: Clicking on `{}`", buttonsId);
+            page.getHtmlElementById(buttonsId).click();
+            waitForAlert("Working...");
+        }
+
+        //delete user through API Gateway should show alert with "Deleted user with id: some_fake_id" message
+        for (String buttonsId : List.of("deleteRegularUserBtn")) {
+            log.debug("Clicking on `{}`", buttonsId);
+            page.getHtmlElementById(buttonsId).click();
+            waitForAlert("Deleted user with id: some_fake_id");
+        }
 
     }
 
