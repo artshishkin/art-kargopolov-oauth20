@@ -23,7 +23,7 @@ public class AbstractKeycloakTest {
     protected static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
     protected static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
 
-    protected static final Network network = Network.newNetwork();
+    protected static final Network network = TestcontainersUtil.createReusableNetwork("keycloak-network");
     protected static final GenericContainer<?> keycloak;
     private static final String ENV_FILE_PATH = "../docker-compose/.env";
     private static final PostgreSQLContainer<?> postgreSQL;
@@ -36,10 +36,12 @@ public class AbstractKeycloakTest {
                 .withUsername("keycloak")
                 .withPassword("password")
                 .withNetwork(network)
+                .withReuse(true)
                 .withNetworkAliases("postgres");
 
         keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:" + getVersion("KEYCLOAK_VERSION"))
                 .withNetwork(network)
+                .withReuse(true)
                 .withNetworkAliases("keycloak")
                 .withEnv(Map.of(
                         "DB_VENDOR", "POSTGRES",
@@ -58,7 +60,8 @@ public class AbstractKeycloakTest {
                         "-Dkeycloak.migration.file=/tmp/export/realm-export.json",
                         "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
                 )
-                .withFileSystemBind("../docker-compose/keycloak-postgres/export/realm-export.json", "/tmp/export/realm-export.json")
+                .withCopyFileToContainer(MountableFile.forHostPath("../docker-compose/keycloak-postgres/export/realm-export.json"),
+                        "/tmp/export/realm-export.json")
                 .withExposedPorts(8080)
                 .withCopyFileToContainer(MountableFile.forHostPath("../user-storage-provider/target/my-remote-user-storage-provider.jar"),
                         "/opt/jboss/keycloak/standalone/deployments/my-remote-user-storage-provider.jar")
@@ -69,6 +72,7 @@ public class AbstractKeycloakTest {
 
         userLegacyService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-user-legacy-service:" + getVersion("SERVICE_VERSION"))
                 .withNetwork(network)
+                .withReuse(true)
                 .withNetworkAliases("user-legacy-service")
                 .waitingFor(Wait.forHealthcheck());
         postgreSQL.start();
