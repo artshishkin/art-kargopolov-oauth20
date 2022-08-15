@@ -1,7 +1,7 @@
 package net.shyshkin.study.oauth.ws.api.gateway;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
+import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
 import net.shyshkin.study.oauth.ws.api.gateway.dto.OAuthResponse;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,10 +24,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -41,24 +39,13 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
         "eureka.client.service-url.defaultZone=${DISCOVERY_SERVICE_URI}/eureka"
 })
 @ContextConfiguration(initializers = ApiGatewayLoadBalancingTests.Initializer.class)
 @ActiveProfiles("local")
-class ApiGatewayLoadBalancingTests {
-
-    public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
-    public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
-
-    @Container
-    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
-
-    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
-
-    static Network network = keycloakStackContainers.getStackNetwork();
+class ApiGatewayLoadBalancingTests extends AbstractKeycloakTest {
 
     @Container
     static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")
@@ -520,21 +507,21 @@ class ApiGatewayLoadBalancingTests {
         await()
                 .timeout(10, TimeUnit.SECONDS)
                 .untilAsserted(() ->
-                        discoveryServiceWebTestClient
-                                .get().uri("/eureka/apps/{app}", serviceName)
-                                .accept(MediaType.APPLICATION_JSON)
-                                .exchange()
+                                discoveryServiceWebTestClient
+                                        .get().uri("/eureka/apps/{app}", serviceName)
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .exchange()
 
-                                //then
-                                .expectStatus().isOk()
-                                .expectBody()
-                                .consumeWith(result -> {
-                                    byte[] responseBodyBytes = result.getResponseBody();
-                                    String responseString = new String(responseBodyBytes, StandardCharsets.UTF_8);
-                                    log.debug("Getting {} characteristics from Eureka, response: {}", serviceName, responseString);
-                                })
-                                .jsonPath("$.application.name").isEqualTo(serviceName)
-                                .jsonPath("$.application.instance[%d].status", lastInstanceIndex).isEqualTo("UP")
+                                        //then
+                                        .expectStatus().isOk()
+                                        .expectBody()
+                                        .consumeWith(result -> {
+                                            byte[] responseBodyBytes = result.getResponseBody();
+                                            String responseString = new String(responseBodyBytes, StandardCharsets.UTF_8);
+                                            log.debug("Getting {} characteristics from Eureka, response: {}", serviceName, responseString);
+                                        })
+                                        .jsonPath("$.application.name").isEqualTo(serviceName)
+                                        .jsonPath("$.application.instance[%d].status", lastInstanceIndex).isEqualTo("UP")
 //                                .jsonPath("$.application.instance.length()").isEqualTo(instanceCount) //does not work
 
                 );

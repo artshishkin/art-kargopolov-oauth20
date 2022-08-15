@@ -7,7 +7,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 import com.gargoylesoftware.htmlunit.javascript.DefaultJavaScriptErrorListener;
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
+import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,10 +18,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,7 +31,6 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
         "app.oauth.uri=http://host.testcontainers.internal:${OAUTH_PORT}",
@@ -41,10 +38,7 @@ import static org.awaitility.Awaitility.await;
         "app.users-api.uri=http://localhost:${USERS_API_PORT}"
 })
 @ContextConfiguration(initializers = SpaJavascriptClientApplicationWebClientDockerTest.Initializer.class)
-class SpaJavascriptClientApplicationWebClientDockerTest {
-
-    public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
-    public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
+class SpaJavascriptClientApplicationWebClientDockerTest extends AbstractKeycloakTest {
 
     @LocalServerPort
     int serverPort;
@@ -59,14 +53,7 @@ class SpaJavascriptClientApplicationWebClientDockerTest {
 
     private String baseUri;
 
-    private AtomicReference<String> lastAlertMessage = new AtomicReference<>();
-
-    @Container
-    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
-
-    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
-
-    static Network network = keycloakStackContainers.getStackNetwork();
+    private final AtomicReference<String> lastAlertMessage = new AtomicReference<>();
 
     @Container
     static GenericContainer<?> discoveryService = new GenericContainer<>("artarkatesoft/art-kargopolov-oauth20-discovery-service")

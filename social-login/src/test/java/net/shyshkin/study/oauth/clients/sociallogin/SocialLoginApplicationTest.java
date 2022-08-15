@@ -1,7 +1,7 @@
 package net.shyshkin.study.oauth.clients.sociallogin;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
+import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -22,11 +22,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Map;
@@ -41,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
         "app.oauth.uri=http://${OAUTH_HOST}:${OAUTH_PORT}"
@@ -49,14 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @ActiveProfiles("keycloak")
 @ContextConfiguration(initializers = SocialLoginApplicationTest.Initializer.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class SocialLoginApplicationTest {
-
-    @Container
-    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
-
-    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
-
-    static Network network = keycloakStackContainers.getStackNetwork();
+class SocialLoginApplicationTest extends AbstractKeycloakTest {
 
     @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()

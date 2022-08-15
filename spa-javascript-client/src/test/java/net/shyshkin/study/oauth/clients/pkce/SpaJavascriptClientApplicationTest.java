@@ -2,7 +2,7 @@ package net.shyshkin.study.oauth.clients.pkce;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
+import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -18,11 +18,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -36,23 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
         "app.oauth.uri=http://${OAUTH_HOST}:${OAUTH_PORT}"
 })
 @ContextConfiguration(initializers = SpaJavascriptClientApplicationTest.Initializer.class)
-class SpaJavascriptClientApplicationTest {
-
-    public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
-    public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
-
-    @Container
-    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
-
-    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
-
-    static Network network = keycloakStackContainers.getStackNetwork();
+class SpaJavascriptClientApplicationTest extends AbstractKeycloakTest {
 
     ObjectMapper objectMapper = new ObjectMapper();
 

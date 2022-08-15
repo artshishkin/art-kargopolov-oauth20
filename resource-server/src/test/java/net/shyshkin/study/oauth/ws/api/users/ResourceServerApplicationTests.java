@@ -1,7 +1,7 @@
 package net.shyshkin.study.oauth.ws.api.users;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
+import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
 import net.shyshkin.study.oauth.ws.api.users.dto.OAuthResponse;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
@@ -21,10 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.BrowserWebDriverContainer;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,24 +31,13 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
         "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://${OAUTH_HOST}:${OAUTH_PORT}/auth/realms/katarinazart/protocol/openid-connect/certs"
 })
 @ContextConfiguration(initializers = ResourceServerApplicationTests.Initializer.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ResourceServerApplicationTests {
-
-    public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
-    public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
-
-    @Container
-    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
-
-    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
-
-    static Network network = keycloakStackContainers.getStackNetwork();
+class ResourceServerApplicationTests extends AbstractKeycloakTest {
 
     @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
