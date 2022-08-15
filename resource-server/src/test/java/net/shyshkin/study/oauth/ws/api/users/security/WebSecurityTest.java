@@ -1,7 +1,7 @@
 package net.shyshkin.study.oauth.ws.api.users.security;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
+import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
 import net.shyshkin.study.oauth.ws.api.users.dto.OAuthResponse;
 import net.shyshkin.study.oauth.ws.api.users.dto.UserDto;
 import org.junit.jupiter.api.*;
@@ -25,10 +25,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.BrowserWebDriverContainer;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -39,24 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
         "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://${OAUTH_HOST}:${OAUTH_PORT}/auth/realms/katarinazart/protocol/openid-connect/certs"
 })
 @ContextConfiguration(initializers = WebSecurityTest.Initializer.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class WebSecurityTest {
-
-    public static final String DEFAULT_OWNER_USERNAME = "shyshkin.art";
-    public static final String DEFAULT_OWNER_PASSWORD = "password_art_1";
-
-    @Container
-    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
-
-    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
-
-    static Network network = keycloakStackContainers.getStackNetwork();
+class WebSecurityTest extends AbstractKeycloakTest {
 
     @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
@@ -90,8 +76,8 @@ class WebSecurityTest {
                 .rootUri(keycloakUri)
                 .build();
 
-        currentUsername = DEFAULT_OWNER_USERNAME;
-        currentPassword = DEFAULT_OWNER_PASSWORD;
+        currentUsername = RESOURCE_OWNER_USERNAME;
+        currentPassword = RESOURCE_OWNER_PASSWORD;
     }
 
     @AfterEach
@@ -102,7 +88,7 @@ class WebSecurityTest {
     @ParameterizedTest
     @Order(20)
     @CsvSource({
-            DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+            RESOURCE_OWNER_USERNAME + "," + RESOURCE_OWNER_PASSWORD,
             "test2@test.com,art",
             "kate_developer@test.com,kate",
             "arina_admin@test.com,arina",
@@ -137,7 +123,7 @@ class WebSecurityTest {
     @ParameterizedTest
     @Order(30)
     @CsvSource({
-            DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+            RESOURCE_OWNER_USERNAME + "," + RESOURCE_OWNER_PASSWORD,
             "test2@test.com,art",
             "kate_developer@test.com,kate",
             "arina_admin@test.com,arina",
@@ -173,7 +159,7 @@ class WebSecurityTest {
     @ParameterizedTest
     @Order(40)
     @CsvSource({
-            DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+            RESOURCE_OWNER_USERNAME + "," + RESOURCE_OWNER_PASSWORD,
             "kate_developer@test.com,kate",
             "nazar_admin_developer@test.com,nazar"
     })
@@ -247,7 +233,7 @@ class WebSecurityTest {
 
         @ParameterizedTest
         @CsvSource({
-                DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+                RESOURCE_OWNER_USERNAME + "," + RESOURCE_OWNER_PASSWORD,
                 "kate_developer@test.com,kate",
                 "nazar_admin_developer@test.com,nazar"
         })
@@ -368,7 +354,7 @@ class WebSecurityTest {
 
         @ParameterizedTest
         @CsvSource({
-                DEFAULT_OWNER_USERNAME + "," + DEFAULT_OWNER_PASSWORD,
+                RESOURCE_OWNER_USERNAME + "," + RESOURCE_OWNER_PASSWORD,
                 "kate_developer@test.com,kate",
                 "test2@test.com,art",
         })

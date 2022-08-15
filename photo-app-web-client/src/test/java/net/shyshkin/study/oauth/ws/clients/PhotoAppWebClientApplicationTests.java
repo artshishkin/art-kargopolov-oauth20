@@ -1,7 +1,7 @@
 package net.shyshkin.study.oauth.ws.clients;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shyshkin.study.oauth.test.containers.KeycloakStackContainers;
+import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -17,10 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.BrowserWebDriverContainer;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +25,6 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@Testcontainers
 @TestPropertySource(properties = {
         "logging.level.net.shyshkin=debug",
         "app.redirect.host.uri=http://host.testcontainers.internal:8050",
@@ -39,17 +34,7 @@ import static org.awaitility.Awaitility.await;
 @ContextConfiguration(initializers = PhotoAppWebClientApplicationTests.Initializer.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Disabled("Can not make it work")
-class PhotoAppWebClientApplicationTests {
-
-    public static final String RESOURCE_OWNER_USERNAME = "shyshkin.art";
-    public static final String RESOURCE_OWNER_PASSWORD = "password_art_1";
-
-    @Container
-    static KeycloakStackContainers keycloakStackContainers = KeycloakStackContainers.getInstance();
-
-    static GenericContainer<?> keycloak = keycloakStackContainers.getKeycloak();
-
-    static Network network = keycloakStackContainers.getStackNetwork();
+class PhotoAppWebClientApplicationTests extends AbstractKeycloakTest {
 
     //    @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
@@ -113,7 +98,7 @@ class PhotoAppWebClientApplicationTests {
 
         await()
                 .timeout(3, TimeUnit.SECONDS)
-                .pollInterval(1,TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     logUrlAndContent();
 
