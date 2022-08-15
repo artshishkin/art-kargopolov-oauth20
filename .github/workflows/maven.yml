@@ -5,7 +5,7 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ master, docker-image-name, git-actions-spa, resolve-host-docker-internal-in-ci ]
+    branches: [ master, docker-image-name, re-use-containers ]
   pull_request:
     branches: [ master ]
 
@@ -15,18 +15,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
-    - name: Add domain host.testcontainers.internal
-      run: |
-        echo '127.0.0.1 host.testcontainers.internal' | sudo tee -a /etc/hosts
-        cat /etc/hosts
-    - name: Install with Maven without testing
-      run: mvn -B clean install -DskipTests --file pom.xml
-    - name: Test with Maven
-      run: mvn -B verify --file pom.xml
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: Add domain host.testcontainers.internal
+        run: |
+          echo '127.0.0.1 host.testcontainers.internal' | sudo tee -a /etc/hosts
+          cat /etc/hosts
+      - name: Enable reuse containers in testcontainers tests
+        run: |
+          echo 'testcontainers.reuse.enable=true' | sudo tee -a $HOME/.testcontainers.properties
+          cat $HOME/.testcontainers.properties
+      - name: Install with Maven without testing
+        run: mvn -B clean install -DskipTests --file pom.xml
+      - name: Test with Maven
+        run: mvn -B verify --file pom.xml
