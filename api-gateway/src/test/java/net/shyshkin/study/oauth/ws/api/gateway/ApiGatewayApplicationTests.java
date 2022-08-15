@@ -45,11 +45,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @ContextConfiguration(initializers = ApiGatewayApplicationTests.Initializer.class)
 class ApiGatewayApplicationTests extends AbstractKeycloakTest {
 
-    @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
             .withCapabilities(new FirefoxOptions())
             .withNetwork(network)
             .withNetworkAliases("browser")
+            .withReuse(true)
             .dependsOn(keycloak);
 
     @Container
@@ -87,6 +87,11 @@ class ApiGatewayApplicationTests extends AbstractKeycloakTest {
 
     static String jwtAccessToken;
     static OAuthResponse oAuthResponse;
+
+    @BeforeAll
+    static void beforeAll() {
+        browser.start();
+    }
 
     @BeforeEach
     void setUp() {

@@ -2,6 +2,7 @@ package net.shyshkin.study.oauth.clients.sociallogin;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -48,11 +49,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SocialLoginApplicationTest extends AbstractKeycloakTest {
 
-    @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
             .withCapabilities(new FirefoxOptions())
             .withNetwork(network)
             .withNetworkAliases("browser")
+            .withReuse(true)
             .dependsOn(keycloak);
 
     @Container
@@ -74,6 +75,11 @@ class SocialLoginApplicationTest extends AbstractKeycloakTest {
 
     @Autowired
     TestRestTemplate testRestTemplate;
+
+    @BeforeAll
+    static void beforeAll() {
+        browser.start();
+    }
 
     @BeforeEach
     void setUp() {

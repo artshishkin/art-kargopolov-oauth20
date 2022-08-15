@@ -2,10 +2,7 @@ package net.shyshkin.study.oauth.ws.clients;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxOptions;
@@ -43,11 +40,11 @@ import static org.awaitility.Awaitility.await;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PhotoAppWebClientApplicationTest extends AbstractKeycloakTest {
 
-    @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
             .withCapabilities(new FirefoxOptions())
             .withNetwork(network)
             .withNetworkAliases("browser")
+            .withReuse(true)
             .dependsOn(keycloak);
 
     @Container
@@ -95,6 +92,11 @@ class PhotoAppWebClientApplicationTest extends AbstractKeycloakTest {
 
     @Autowired
     TestRestTemplate testRestTemplate;
+
+    @BeforeAll
+    static void beforeAll() {
+        browser.start();
+    }
 
     @BeforeEach
     void setUp() {

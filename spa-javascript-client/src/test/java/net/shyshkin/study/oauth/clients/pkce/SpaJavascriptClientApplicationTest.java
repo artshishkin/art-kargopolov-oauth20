@@ -3,6 +3,7 @@ package net.shyshkin.study.oauth.clients.pkce;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.shyshkin.study.oauth.test.common.AbstractKeycloakTest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -71,12 +72,12 @@ class SpaJavascriptClientApplicationTest extends AbstractKeycloakTest {
             .dependsOn(usersService, discoveryService)
             .waitingFor(Wait.forHealthcheck());
 
-    @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
             .withCapabilities(new FirefoxOptions())
             .withNetwork(network)
             .withNetworkAliases("browser")
-            .withLogConsumer(new Slf4jLogConsumer(log))
+//            .withLogConsumer(new Slf4jLogConsumer(log))
+            .withReuse(true)
             .dependsOn(keycloak);
 
     @Container
@@ -96,6 +97,11 @@ class SpaJavascriptClientApplicationTest extends AbstractKeycloakTest {
             .waitingFor(Wait.forHealthcheck());
 
     RemoteWebDriver driver;
+
+    @BeforeAll
+    static void beforeAll() {
+        browser.start();
+    }
 
     @BeforeEach
     void setUp() {

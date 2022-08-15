@@ -41,6 +41,7 @@ class PhotoAppWebClientApplicationTests extends AbstractKeycloakTest {
             .withCapabilities(new FirefoxOptions())
             .withNetwork(network)
             .withNetworkAliases("browser")
+            .withReuse(true)
             .dependsOn(keycloak);
 
     static {

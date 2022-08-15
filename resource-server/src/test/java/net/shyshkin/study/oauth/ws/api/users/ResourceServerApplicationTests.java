@@ -21,7 +21,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.BrowserWebDriverContainer;
-import org.testcontainers.junit.jupiter.Container;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,11 +38,11 @@ import static org.awaitility.Awaitility.await;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ResourceServerApplicationTests extends AbstractKeycloakTest {
 
-    @Container
     static BrowserWebDriverContainer<?> browser = new BrowserWebDriverContainer<>()
             .withCapabilities(new FirefoxOptions())
             .withNetwork(network)
             .withNetworkAliases("browser")
+            .withReuse(true)
             .dependsOn(keycloak);
 
     RemoteWebDriver driver;
@@ -56,6 +55,11 @@ class ResourceServerApplicationTests extends AbstractKeycloakTest {
     TestRestTemplate testRestTemplate;
 
     static String jwtAccessToken;
+
+    @BeforeAll
+    static void beforeAll() {
+        browser.start();
+    }
 
     @BeforeEach
     void setUp() {
